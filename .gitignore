@@ -13,6 +13,7 @@ __pycache__/
 project_ws/bags_ros/
 *.bag
 *.mcap
+*.db3
 
 # Fichiers systèmes ou IDE
 .vscode/
