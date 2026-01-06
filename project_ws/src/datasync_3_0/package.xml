@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>datasync_3_0</name>
+  <version>0.0.1</version>
+  <description>ROS2 motion compensation using dv-ros2 event messages.</description>
+  <maintainer email="nochi@example.com">nochi</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>dv_ros2_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>opencv</depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

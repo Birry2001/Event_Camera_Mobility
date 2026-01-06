@@ -1,0 +1,26 @@
+datasync_node:
+  ros__parameters:
+    # DAVIS 346 defaults
+    weight_param: 346
+    height_param: 260
+    focus: 6550.0
+    pixel_size: 18.5
+    # Keep true to match ROS1 behavior; set false for bags with IMU lag
+    require_imu_ahead: true
+
+    # dv_ros2_capture publishes relative topics: events, imu
+    events_topic: "events"
+    imu_topic: "imu"
+    count_image_topic: "count_image"
+
+    # Alternative configs (uncomment and adjust)
+    # DVXplorer
+    # weight_param: 640
+    # height_param: 480
+    # focus: 5294.0
+    # pixel_size: 9.0
+    # DAVIS 240C
+    # weight_param: 240
+    # height_param: 180
+    # focus: 4000.0
+    # pixel_size: 18.5

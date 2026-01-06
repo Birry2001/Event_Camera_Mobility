@@ -2,11 +2,11 @@
 	<!--启动运动补偿节点 -->
 	<node  pkg="datasync" type="Motion_Compensation" name="Motion_Compensation" output="screen">
 		
-		<!-- dvxplorer config-->
+		<!-- dvxplorer config 
 		<param name="weight_param"    value="640"/>
 		<param name="height_param"    	value="480"/> 
 		<param name="focus"           	value="5294"/>
-		<param name="pixel_size"      	value="9"/> 
+		<param name="pixel_size"      	value="9"/> -->
 
 
 		<!-- davis 346 config
@@ -16,11 +16,11 @@
 		<param name="pixel_size"      		value="18.5"/> -->
 
 
-		<!-- davis 240c config-->
-		<!-- <param name="weight_param"    value="240"/>
+		<!-- davis 240c config -->
+		<param name="weight_param"    value="240"/>
 		<param name="height_param"    	value="180"/> 
 		<param name="focus"          	value="4000"/>
-		<param name="pixel_size"      	value="18.5"/> -->
+		<param name="pixel_size"      	value="18.5"/> 
 
 
 		<!-- davis 240b config-->

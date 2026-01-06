@@ -1,0 +1,14 @@
+datasync_node:
+  ros__parameters:
+    # DAVIS 240 defaults for this bag
+    weight_param: 240
+    height_param: 180
+    focus: 4000.0
+    pixel_size: 18.5
+
+    # For this bag, IMU lags behind events
+    require_imu_ahead: false
+
+    events_topic: "events"
+    imu_topic: "imu"
+    count_image_topic: "count_image"
