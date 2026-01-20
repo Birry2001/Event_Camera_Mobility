@@ -16,14 +16,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(dvs_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(event_camera_msgs REQUIRED)
-find_package(event_camera_codecs REQUIRED)
 
 # ---  Build Executable ---
 add_executable(Motion_Compensation src/Motion_Compensation.cpp)
@@ -41,13 +37,9 @@ ament_target_dependencies(Motion_Compensation
   rclcpp
   std_msgs
   sensor_msgs
-  geometry_msgs
-  visualization_msgs
   cv_bridge
   image_transport
-  event_camera_msgs
   dvs_msgs
-  event_camera_codecs
 )
 
 # Link System libraries (OpenCV)

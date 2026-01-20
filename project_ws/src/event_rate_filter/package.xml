@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>event_rate_filter</name>
+  <version>0.0.0</version>
+  <description>Filter events by per-pixel rate (EMA) to suppress bright/noisy regions.</description>
+  <maintainer email="nochi@todo.todo">nochi</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>dv_ros2_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

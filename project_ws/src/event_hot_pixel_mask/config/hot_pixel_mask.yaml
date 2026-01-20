@@ -1,0 +1,10 @@
+hot_pixel_mask_node:
+  ros__parameters:
+    input_topic: /events
+    output_topic: /events_filtered
+    publish_unfiltered_during_calibration: true
+    publish_mask_image: true
+    mask_image_topic: /hot_pixel_mask
+    calibration_duration_s: 5.0
+    rate_threshold: 80.0
+    min_count: 10

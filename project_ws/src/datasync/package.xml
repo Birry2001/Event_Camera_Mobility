@@ -14,16 +14,12 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>visualization_msgs</depend>
 
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
   <depend>OpenCV</depend>
 
   <depend>dvs_msgs</depend>
-  <depend>event_camera_codecs</depend>
-  <depend>event_camera_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    input_topic: /count_image
+    output_topic: /count_image_denoised
+    min_value: 3
+    median_blur: true
+    median_kernel: 3
+    morph_open: false
+    morph_close: true
+    morph_kernel: 3

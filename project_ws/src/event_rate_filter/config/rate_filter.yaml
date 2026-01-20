@@ -1,0 +1,10 @@
+event_rate_filter_node:
+  ros__parameters:
+    input_topic: /events
+    output_topic: /events_rate_filtered
+    rate_threshold: 200.0
+    ema_alpha: 0.2
+    min_dt_s: 0.001
+    warmup_frames: 5
+    publish_mask_image: true
+    mask_image_topic: /event_rate_mask

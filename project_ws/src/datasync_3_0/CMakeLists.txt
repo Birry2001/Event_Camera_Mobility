@@ -15,7 +15,10 @@ find_package(dv_ros2_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 
-add_executable(motion_compensation_node src/Motion_Compensation.cpp)
+add_executable(motion_compensation_node
+  src/EventVisualizer.cpp
+  src/main.cpp
+)
 
 target_include_directories(motion_compensation_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
