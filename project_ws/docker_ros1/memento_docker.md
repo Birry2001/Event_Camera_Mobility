@@ -56,3 +56,5 @@
 - Appliquer les **bonnes pratiques** : utiliser des images fiables, monter des volumes pour la persistance, nettoyer les anciens conteneurs/images, éviter d’inclure des secrets dans les images.  
 
 
+xhost +local:docker
+

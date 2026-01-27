@@ -19,7 +19,5 @@ datasync_node:
     time_image_vis_topic: "time_image_vis"
     publish_time_image_vis: true
     publish_raw_count: true
-    publish_comp_count: true
     raw_count_topic: "count_image_raw"
-    comp_count_topic: "count_image_comp"
     sort_events_by_time: true

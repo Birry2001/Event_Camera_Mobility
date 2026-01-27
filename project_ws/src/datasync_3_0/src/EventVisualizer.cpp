@@ -46,21 +46,19 @@ EventVisualizer::EventVisualizer() : Node("datasync_node") {
     declare_parameter<int>("height_param", height_param);
     declare_parameter<double>("focus", focus_param);
     declare_parameter<double>("pixel_size", pixel_size_param);
-    declare_parameter<bool>("require_imu_ahead", true);
+    declare_parameter<bool>("require_imu_ahead", false);
     declare_parameter<int64_t>("imu_window_ns", 3000000);
 
     declare_parameter<std::string>("events_topic", "events");
     declare_parameter<std::string>("imu_topic", "imu");
     declare_parameter<std::string>("count_image_topic", "count_image");
     declare_parameter<bool>("publish_raw_count", false);
-    declare_parameter<bool>("publish_comp_count", false);
     declare_parameter<std::string>("raw_count_topic", "count_image_raw");
-    declare_parameter<std::string>("comp_count_topic", "count_image_comp");
     declare_parameter<std::string>("time_image_topic", "time_image");
     declare_parameter<std::string>("time_image_vis_topic", "time_image_vis");
     declare_parameter<bool>("publish_time_image", true);
     declare_parameter<bool>("publish_time_image_vis", true);
-    declare_parameter<bool>("sort_events_by_time", true);
+
 
     // ----------------------
     // Lecture parametres
@@ -76,14 +74,12 @@ EventVisualizer::EventVisualizer() : Node("datasync_node") {
     get_parameter("imu_topic", imu_topic_);
     get_parameter("count_image_topic", count_image_topic_);
     get_parameter("publish_raw_count", publish_raw_count_);
-    get_parameter("publish_comp_count", publish_comp_count_);
     get_parameter("raw_count_topic", raw_count_topic_);
-    get_parameter("comp_count_topic", comp_count_topic_);
     get_parameter("time_image_topic", time_image_topic_);
     get_parameter("publish_time_image", publish_time_image_);
     get_parameter("time_image_vis_topic", time_image_vis_topic_);
     get_parameter("publish_time_image_vis", publish_time_image_vis_);
-    get_parameter("sort_events_by_time", sort_events_by_time_);
+
 
     // ----------------------
     // QoS capteurs standard ROS (pas de fiabilite stricte, faible latence)
@@ -96,7 +92,7 @@ EventVisualizer::EventVisualizer() : Node("datasync_node") {
     event_sub_ = create_subscription<dv_ros2_msgs::msg::EventArray>(
         events_topic_, qos,
         std::bind(&EventVisualizer::event_cb, this, std::placeholders::_1));
-
+    
     // ----------------------
     // Souscription IMU
     // ----------------------
@@ -112,10 +108,6 @@ EventVisualizer::EventVisualizer() : Node("datasync_node") {
     if (publish_raw_count_) {
         raw_count_pub_ = create_publisher<sensor_msgs::msg::Image>(
             raw_count_topic_, 1);
-    }
-    if (publish_comp_count_) {
-        comp_count_pub_ = create_publisher<sensor_msgs::msg::Image>(
-            comp_count_topic_, 1);
     }
     if (publish_time_image_) {
         time_image_pub_ = create_publisher<sensor_msgs::msg::Image>(
@@ -171,20 +163,16 @@ void EventVisualizer::data_process() {
         return;
     }
 
-    // Timestamp premier/dernier evenement
     const int64_t event_first_ns = toNs(event_buffer_.front().ts);
-    const int64_t event_last_ns = toNs(event_buffer_.back().ts);
+    const int64_t imu_last_ns = toNs(imu_buffer_snapshot_.back().header.stamp);
 
-    // Timestamp dernier IMU
-    const int64_t imu_last_ns =
-        toNs(imu_buffer_snapshot_.back().header.stamp);
-
-    // Si exige : IMU doit etre "en avance" sur les evenements
-    if (require_imu_ahead_ && imu_last_ns <= event_last_ns) {
+    // On ne traite les données que si le message imu le plus récent est plus récent que le premier évènement
+    if (imu_last_ns <= event_first_ns) {
         event_buffer_.clear();
         imu_buffer_snapshot_.clear();
         return;
     }
+
 
     // ----------------------
     // Lissage IMU (moyenne des vitesses angulaires)
@@ -230,17 +218,12 @@ void EventVisualizer::data_process() {
     // Image brute (sans compensation)
     // ----------------------
     std::vector<std::vector<int>> raw_count_image;
-    if (publish_raw_count_ || publish_comp_count_) {
+    if (publish_raw_count_) {
         raw_count_image.assign(
             height_param, std::vector<int>(width_param));
     }
 
-    if (sort_events_by_time_) {
-        std::sort(event_buffer_.begin(), event_buffer_.end(),
-                  [](const auto &a, const auto &b) {
-                      return toNs(a.ts) < toNs(b.ts);
-                  });
-    }
+
 
     // ----------------------
     // Boucle sur tous les evenements
@@ -281,7 +264,7 @@ void EventVisualizer::data_process() {
             static_cast<int>(
                 (x * std::cos(z_angular) - std::sin(z_angular) * y)
                 - (x - (focus_param *
-                        std::tan(pre_y_angle + y_angular)
+                        std::tan(pre_y_angle - y_angular)
                         / pixel_size_param))
             + width_param / 2);
 
@@ -338,9 +321,6 @@ void EventVisualizer::data_process() {
         }
         if (publish_raw_count_) {
             show_count_image(raw_count_image, raw_max, last_event_header_, raw_count_pub_);
-        }
-        if (publish_comp_count_) {
-            show_count_image(count_image, max_count, last_event_header_, comp_count_pub_);
         }
     }
 
@@ -431,6 +411,7 @@ void EventVisualizer::event_cb(const dv_ros2_msgs::msg::EventArray::SharedPtr ms
 // ========================================================================
 void EventVisualizer::imu_cb(const sensor_msgs::msg::Imu::SharedPtr imu) {
     if (!first_event_received_) {
+        std::lock_guard<std::mutex> lock(mtx_);
         imu_buffer_.emplace_back(*imu);
     }
 }

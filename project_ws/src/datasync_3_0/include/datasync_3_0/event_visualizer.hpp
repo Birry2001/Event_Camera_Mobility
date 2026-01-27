@@ -35,9 +35,7 @@ private:
     bool publish_time_image_ = true;
     bool publish_time_image_vis_ = true;
     bool publish_raw_count_ = false;
-    bool publish_comp_count_ = false;
     std::string raw_count_topic_;
-    std::string comp_count_topic_;
     bool sort_events_by_time_ = true;
 
     rclcpp::Subscription<dv_ros2_msgs::msg::EventArray>::SharedPtr event_sub_;
@@ -46,7 +44,6 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr time_image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr time_image_vis_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr raw_count_pub_;
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr comp_count_pub_;
 
     std::vector<dv_ros2_msgs::msg::Event> event_buffer_;
     std::vector<sensor_msgs::msg::Imu> imu_buffer_;
