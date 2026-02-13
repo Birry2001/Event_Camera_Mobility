@@ -18,12 +18,12 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "params_file",
                 default_value=default_params,
-                description="Clustering params file",
+                description="Object contours extraction params file",
             ),
             Node(
                 package="event_clustering",
                 executable="event_clustering_node",
-                name="event_clustering",
+                name="object_contours_from_mask",
                 output="screen",
                 parameters=[LaunchConfiguration("params_file")],
             ),

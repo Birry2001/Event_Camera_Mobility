@@ -16,7 +16,7 @@ setup(
     zip_safe=True,
     maintainer="nochi",
     maintainer_email="nochi@todo.todo",
-    description="DBSCAN clustering for event-based masks.",
+    description="Object contour extraction from event masks.",
     license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={

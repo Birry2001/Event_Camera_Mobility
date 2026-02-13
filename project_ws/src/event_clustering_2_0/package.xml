@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>event_clustering_2_0</name>
+  <version>0.0.0</version>
+  <description>Event-based moving object clustering with joint DBSCAN metric.</description>
+  <maintainer email="nochi@todo.todo">nochi</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>numpy</exec_depend>
+  <exec_depend>dv_ros2_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

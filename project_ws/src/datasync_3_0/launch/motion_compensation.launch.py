@@ -4,15 +4,11 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import os
-import yaml
 
 
 def generate_launch_description():
     package_name = 'datasync_3_0'
     config_path = os.path.join(get_package_share_directory(package_name), 'config', 'motion_compensation.yaml')
-
-    with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
 
     events_topic = LaunchConfiguration('events_topic')
     imu_topic = LaunchConfiguration('imu_topic')
@@ -27,7 +23,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'events_topic',
-            default_value='events',
+            default_value='/events/read_split',
             description='EventArray topic name'
         ),
         DeclareLaunchArgument(
@@ -45,9 +41,12 @@ def generate_launch_description():
             executable='motion_compensation_node',
             name='datasync_node',
             parameters=[params_file, {
-                'events_topic': events_topic,
+                'events_topic': "events",
                 'imu_topic': imu_topic,
                 'count_image_topic': count_image_topic,
+                'lambda_a': 1.0,
+                'lambda_b': 0.2,
+
             }],
             output='screen',
             emulate_tty=True,

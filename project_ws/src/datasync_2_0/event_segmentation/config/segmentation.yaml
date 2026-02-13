@@ -4,9 +4,6 @@
     count_image_topic: /count_image
     mask_topic: /event_mask
     min_count: 1
-    z_threshold: 1.0
-    use_percentile: true
-    percentile: 70.0
     use_time_image: true
     invert_time: false
     min_time: 0.0

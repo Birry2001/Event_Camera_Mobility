@@ -1,0 +1,46 @@
+datasync_4_0_node:
+  ros__parameters:
+    # DAVIS 346 defaults
+    weight_param: 346
+    height_param: 260
+    focus: 6550.0
+    pixel_size: 18.5
+    # Keep true to match ROS1 behavior; set false for bags with IMU lag
+    require_imu_ahead: true
+    # IMU averaging window (nanoseconds)
+    imu_window_ns: 10000000
+
+    # dv_ros2_capture publishes relative topics: events, imu
+    events_topic: "events"
+    imu_topic: "imu"
+    depth_topic: "depth"
+    camera_info_topic: "camera_info"
+    odom_topic: "odom"
+
+    base_frame: "base_link"
+    camera_frame: "camera"
+
+    require_depth: true
+    require_odom: true
+    use_imu_rotation: true
+    max_depth_age_ms: 50.0
+    depth_scale: 0.001
+    odom_buffer_ns: 2000000000
+    count_image_topic: "count_image"
+    time_image_topic: "time_image"
+    publish_time_image: true
+    time_image_vis_topic: "time_image_vis"
+    publish_time_image_vis: true
+    sort_events_by_time: true
+
+    # Alternative configs (uncomment and adjust)
+    # DVXplorer
+    # weight_param: 640
+    # height_param: 480
+    # focus: 5294.0
+    # pixel_size: 9.0
+    # DAVIS 240C
+    # weight_param: 240
+    # height_param: 180
+    # focus: 4000.0
+    # pixel_size: 18.5
