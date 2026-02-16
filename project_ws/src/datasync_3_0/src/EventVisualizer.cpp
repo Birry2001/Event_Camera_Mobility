@@ -305,7 +305,7 @@ void EventVisualizer::data_process() {
             static_cast<int>(
                 (x * std::cos(z_angular) - std::sin(z_angular) * y)
                 - (x - (focus_param *
-                        std::tan(pre_y_angle - y_angular)
+                        std::tan(pre_y_angle + y_angular)
                         / pixel_size_param))
             + width_param / 2);
 
@@ -329,13 +329,12 @@ void EventVisualizer::data_process() {
             if (count_image[compen_y][compen_x] < 20) {
                 count_image[compen_y][compen_x]++;
             }
-             count_image[compen_y][compen_x]++;
 
             // Accumulation temporelle
-            if (time_image[compen_y][compen_x] < 20) {
-                time_image[compen_y][compen_x]++;
-            }
-            // time_image[compen_y][compen_x] += time_diff;
+            //if (time_image[compen_y][compen_x] < 20) {
+            //    time_image[compen_y][compen_x]+= time_diff;
+            //}
+            time_image[compen_y][compen_x] += time_diff;
         }
     }
 

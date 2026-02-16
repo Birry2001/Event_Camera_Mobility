@@ -70,6 +70,8 @@ class EventSegmentationNode(Node):
         self._lambda_latest = None
         self.create_subscription(Float32, lambda_topic, self._on_lambda, 10)
 
+        self._time_abs_max_pub = self.create_publisher(Float32, "time_abs_max_topic", 10)
+
         # -----------------------------
         # Subscribers synchronisés : time_image + count_image
         # -----------------------------
@@ -144,8 +146,31 @@ class EventSegmentationNode(Node):
         # Remarque : si time_img a été "centré" (valeurs pouvant être négatives),
         # alors un filtre du type (time_img >= self._min_time) avec min_time=0.0
         # peut supprimer beaucoup de pixels. D'où le commentaire sur min_time.
-        fg_mask = (time_img > threshold) & count_mask  # + (time_img >= self._min_time) si besoin
+        count_mask = count_img >= self._min_count
 
+        if np.any(count_mask):
+            active = time_img[count_mask]
+            max_time_img = float(np.max(active))
+            min_time_img = float(np.min(active))
+            abs_max = float(np.max(np.abs(active)))
+        else:
+            max_time_img = min_time_img = abs_max = 0.0
+
+        self.get_logger().info(f"time_img max (active) = {max_time_img:.6f}")
+        self.get_logger().info(f"time_img min (active) = {min_time_img:.6f}")
+
+        msg = Float32()
+        msg.data = abs_max
+        self._time_abs_max_pub.publish(msg)
+
+        # Seuillage pixel-par-pixel
+        fg_mask = (np.abs(time_img) > threshold) & count_mask
+
+
+        self.get_logger().info(
+            f"time_msg: enc={time_msg.encoding} step={time_msg.step} "
+            f"w={time_msg.width} h={time_msg.height} data_len={len(time_msg.data)}"
+        )
         if self._morph_open or self._morph_close:
             k = max(1, self._morph_kernel)
             structure = np.ones((k, k), dtype=bool)

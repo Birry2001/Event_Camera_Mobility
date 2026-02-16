@@ -1,0 +1,119 @@
+\chapter{Materiel et fondements theoriques}
+
+\section{Presentation du materiel}
+
+\subsection{Presentation de la camera DAVIS346 et fiche technique}
+La camera DAVIS346 est un capteur neuromorphique hybride qui produit en
+parallele un flux d'evenements (DVS) et des images APS classiques sur un meme
+capteur. Cette architecture est interessante pour notre projet, car elle permet
+de conserver une information temporelle tres fine tout en gardant une reference
+image exploitable pour le debug et la visualisation \cite{davis346_datasheet}.
+
+Les caracteristiques techniques directement utiles pour la chaine de perception
+du projet sont resumees dans le tableau \ref{tab:davis_specs}.
+
+\begin{table}[H]
+\centering
+\caption{Fiche technique synthetique de la DAVIS346}
+\label{tab:davis_specs}
+\begin{tabular}{ll}
+\toprule
+Parametre & Valeur \\
+\midrule
+Resolution capteur & 346 x 260 \\
+Sorties & Evenements DVS + images APS concurrentes \\
+Plage dynamique evenementielle & Jusqu'a 120 dB \\
+Resolution temporelle & 1 us \\
+Latence evenementielle & Sous 1 us (nominale) \\
+Debit maximal & Jusqu'a 12 MEPS \\
+IMU integree & 6 axes (gyro + accelerometre), jusqu'a 8 kHz \\
+Alimentation & $<$ 180 mA a 5 V \\
+Connectique principale & USB 3.0 Micro-B (verrouillable) \\
+Monture optique & CS-mount (adaptateur C-mount possible) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le document technique signale egalement des limites pratiques a connaitre lors
+des essais: salves d'evenements possibles en mode APS Global Shutter, schema de
+balayage DVS sous forte charge, et performances image APS inferieures a des
+cameras classiques. Ces limites justifient un reglage fin des biais capteur et
+une calibration experimentale adaptee au contexte robotique
+\cite{davis346_datasheet}.
+
+\subsection{Presentation du robot LIMO}
+Le robot LIMO d'AgileX est presente comme une plateforme ROS polyvalente avec
+quatre modes de locomotion (differentiel, Ackermann, chenilles et mecanum), ce
+qui en fait un support pertinent pour des tests de navigation dans des scenes
+heterogenes \cite{limo_ros2_doc,limo_agilex_video}.
+
+La documentation technique indique en particulier:
+\begin{itemize}
+\item dimensions compactes (322 x 220 x 251 mm) et charge utile de 4 kg;
+\item vitesse maximale sans charge de l'ordre de 1 m/s;
+\item calcul embarque base sur NUC sous Ubuntu 22.04;
+\item capteurs integres utiles a la navigation (LiDAR, camera de profondeur,
+IMU).
+\end{itemize}
+
+La pile logicielle officielle propose des launches ROS 2 pour le demarrage de
+la base, la cartographie, puis la navigation Nav2 suivant le mode de conduite
+retendu \cite{limo_ros2_doc}. Cette base materielle et logicielle est
+compatible avec notre integration de la perception evenementielle.
+
+\section{Concepts theoriques mobilises}
+
+\subsection{Camera a evenements: notion, bref historique, avantages et limites}
+Une camera a evenements est un capteur asynchrone: chaque pixel declenche un
+evenement uniquement lors d'une variation de luminance, au lieu d'attendre une
+image globale echantillonnee a frequence fixe. La revue de reference rappelle
+que ce paradigme s'inscrit dans le champ plus large de l'ingenierie
+neuromorphique et qu'il s'est structure au cours des dernieres decennies avec
+des familles de capteurs comme DVS ou ATIS \cite{novoa2024review}.
+
+Les avantages majeurs pour la robotique mobile sont:
+\begin{itemize}
+\item forte plage dynamique (ordre de 120 dB) utile en eclairage difficile;
+\item tres faible latence de perception;
+\item reduction de la redondance et de la consommation grace au codage
+asynchrone des changements \cite{novoa2024review}.
+\end{itemize}
+
+Les limites relevees dans la meme revue sont aussi importantes:
+\begin{itemize}
+\item flux sparse plus difficile a exploiter que des images denses;
+\item capteurs encore couteux;
+\item resolution et interfaces encore contraintes sur certains systemes
+commerciaux \cite{novoa2024review}.
+\end{itemize}
+
+\subsection{Detection d'obstacles (IMO): panorama rapide des familles}
+La detection d'objets en mouvement independant (IMO) vise a separer les
+mouvements lies a l'ego-mouvement du robot de ceux des objets reels de la
+scene. Dans un cadre evenementiel, la revue distingue trois familles
+methodologiques principales \cite{novoa2024review}:
+\begin{itemize}
+\item approches de compensation de mouvement (soustraction du mouvement global,
+souvent via flot optique);
+\item approches residuelles iteratives combinant ego-mouvement et segmentation
+de residus;
+\item approches apprentissage (supervise ou non supervise) pour segmenter
+directement les IMO.
+\end{itemize}
+
+Ce panorama montre que les approches a base de compensation restent attractives
+pour des contraintes de temps reel embarque, ce qui motive le choix methodologique
+du projet.
+
+\subsection{Navigation autonome et algorithme utilise dans le projet}
+La documentation LIMO rappelle le schema classique de navigation mobile:
+localisation sur carte + planification globale + planification locale
+\cite{limo_ros2_doc}. En pratique, l'execution de la navigation est faite via
+Nav2 avec un lancement dedie au mode differentiel
+(\texttt{limo\_nav2\_diff.launch.py}) \cite{limo_ros2_doc}.
+
+Dans notre configuration, le planificateur global est de type NavFn
+(equivalent Dijkstra quand l'option A* est inactive), le controle local repose
+sur DWB, et la localisation est assuree par AMCL. Cette architecture sert de
+base pour injecter ensuite les obstacles dynamiques issus de la perception
+evenementielle.

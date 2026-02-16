@@ -44,8 +44,8 @@ def generate_launch_description():
                 'events_topic': "events",
                 'imu_topic': imu_topic,
                 'count_image_topic': count_image_topic,
-                'lambda_a': 1.0,
-                'lambda_b': 0.2,
+                'lambda_a': 0.7,
+                'lambda_b': 0.1,
 
             }],
             output='screen',

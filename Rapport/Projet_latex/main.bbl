@@ -1,0 +1,51 @@
+\begin{thebibliography}{1}
+
+\bibitem{davis346_datasheet}
+iniVation AG.
+\newblock {\em DAVIS346 Datasheet}, 2025.
+\newblock Release 2025-08-05, technical documentation.
+
+\bibitem{limo_ros2_doc}
+{AgileX Robotics}.
+\newblock Limo ros2 humble documentation.
+\newblock
+  \url{https://raw.githubusercontent.com/agilexrobotics/limo_ros2_doc/master/LIMO-ROS2-humble%28EN%29.md},
+  2026.
+\newblock Accessed on 2026-02-16.
+
+\bibitem{limo_agilex_video}
+{AgileX Robotics}.
+\newblock Limo, the first multi-modal mobile robot with ai modules and ros
+  demo.
+\newblock \url{https://www.youtube.com/watch?v=G19B7R4gIGU}, 2026.
+\newblock Video presentation, accessed on 2026-02-16.
+
+\bibitem{novoa2024review}
+A.~Novoa, F.~Lobon, H.~G. De~Marina, S.~Romero, and F.~Barranco.
+\newblock Neuromorphic perception and navigation for mobile robots: A review.
+\newblock {\em arXiv preprint arXiv:2407.06792}, 2024.
+
+\bibitem{zhao2023imo}
+Chunhui Zhao, Yakun Li, and Yang Lyu.
+\newblock Event-based real-time moving object detection based on imu ego-motion
+  compensation.
+\newblock In {\em 2023 IEEE International Conference on Robotics and Automation
+  (ICRA)}, pages 690--696, 2023.
+
+\bibitem{nav2_plugin_tutorial}
+{Nav2 Documentation}.
+\newblock Writing a new costmap2d plugin.
+\newblock
+  \url{https://docs.nav2.org/plugin_tutorials/docs/writing_new_costmap2d_plugin.html},
+  2026.
+\newblock Accessed on 2026-02-16.
+
+\bibitem{nav2_costmap_config}
+{Nav2 Documentation}.
+\newblock Configuring costmaps.
+\newblock
+  \url{https://docs.nav2.org/configuration/packages/configuring-costmaps.html},
+  2026.
+\newblock Accessed on 2026-02-16.
+
+\end{thebibliography}

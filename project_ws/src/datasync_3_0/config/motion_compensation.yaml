@@ -20,7 +20,7 @@ datasync_node:
     publish_time_image_vis: true
     sort_events_by_time: true
     lambda_a: 0.8
-    lambda_b: 0.0
+    lambda_b: 0.2
 
 
     # Alternative configs (uncomment and adjust)

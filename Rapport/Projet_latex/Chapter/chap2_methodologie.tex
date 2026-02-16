@@ -1,0 +1,79 @@
+\chapter{Methodologie}
+
+Ce chapitre detaille l'implementation de l'article
+\textit{Event-based Real-time Moving Object Detection Based On IMU Ego-motion
+Compensation} dans notre environnement ROS 2 \cite{zhao2023imo}.
+
+\section{Motion compensation}
+L'etape cle est la compensation de l'ego-mouvement de la camera. Dans
+l'article, les auteurs associent des paquets d'evenements a des mesures IMU sur
+une fenetre temporelle courte, puis appliquent une fonction de warping non
+lineaire issue d'un modele de rotation rigide. L'objectif est de realigner les
+evenements du fond statique pour rendre les zones dynamiques plus visibles
+\cite{zhao2023imo}.
+
+Toujours selon l'article, la formulation non lineaire ameliore la precision de
+compensation (ordre de 10 a 15\%) par rapport a une approximation lineaire,
+tout en restant compatible avec une execution temps reel embarquee
+\cite{zhao2023imo}.
+
+Sur le plan logiciel, nous sommes partis de la version ROS1 du package de
+motion compensation puis nous avons realise une adaptation ROS 2 dans le
+package \texttt{datasync\_3\_0}. Le noeud ROS 2:
+\begin{itemize}
+\item subscribe les evenements et l'IMU;
+\item calcule une vitesse angulaire moyenne sur fenetre;
+\item produit des evenements compenses, une count-image, une time-image et un
+seuil dynamique $\lambda$ publie sur un topic dedie.
+\end{itemize}
+
+\section{Objects segmentation}
+Apres compensation, le papier exploite le fait que les evenements de fond
+stabilises se concentrent spatialement, alors que les evenements d'objets
+independants restent plus disperses. La segmentation est faite via une
+count-image et une time-image: un pixel est classe dynamique si sa valeur
+temporelle normalisee depasse un seuil dynamique $\lambda = a \lVert \omega
+\rVert + b$ \cite{zhao2023imo}.
+
+Dans notre implementation ROS 2 (\texttt{project\_ws/src/event\_segmentation}),
+le noeud de segmentation:
+\begin{itemize}
+\item synchronise \texttt{/time\_image} et \texttt{/count\_image};
+\item recupere $\lambda$ depuis \texttt{/event\_lambda\_threshold};
+\item genere un masque binaire des pixels foreground (avec contraintes de
+minimum d'activite et filtrage morphologique optionnel).
+\end{itemize}
+
+\section{Objects clustering}
+La derniere etape de l'article regroupe les evenements dynamiques en objets.
+La logique theorique combine un clustering type DBSCAN (robuste au bruit) avec
+une metrique melant position spatio-temporelle 3D et flot optique 2D pour
+mieux separer des objets proches dans le plan image \cite{zhao2023imo}.
+
+Dans notre chaine ROS 2 (\texttt{project\_ws/src/event\_clustering}), la
+version actuelle realise un regroupement en composantes connexes du masque
+foreground, complete par un filtrage temporel de persistance des petites
+composantes. Cette adaptation conserve l'esprit de la methode (regroupement
+spatio-temporel robuste en temps reel) tout en restant simple a maintenir dans
+le pipeline global.
+
+\section{Creation d'une layer Nav2 pour les obstacles dynamiques}
+Les tutoriels officiels Nav2 decrivent deux voies complementaires pour injecter
+les obstacles dynamiques dans la navigation:
+\begin{itemize}
+\item creer un plugin de costmap en derivant \texttt{nav2\_costmap\_2d::Layer}
+et en implementant les methodes \texttt{onInitialize()},
+\texttt{updateBounds()} et \texttt{updateCosts()};
+\item exporter ce plugin via \texttt{PLUGINLIB\_EXPORT\_CLASS} et l'activer
+dans la liste \texttt{plugins} de la costmap \cite{nav2_plugin_tutorial}.
+\end{itemize}
+
+La documentation de configuration Nav2 rappelle aussi que les couches de
+costmap peuvent ingerer des sources capteurs via
+\texttt{observation\_sources}, notamment en \texttt{LaserScan} ou
+\texttt{PointCloud2} \cite{nav2_costmap_config}.
+
+Dans notre projet, l'integration operationnelle est faite par cette seconde
+voie: publication des obstacles dynamiques au format \texttt{PointCloud2} sur
+\texttt{/dynamic\_obstacles}, puis declaration de cette source dans les
+costmaps locale et globale (fichier \texttt{nav2\_diff.yaml}).

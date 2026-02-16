@@ -1,0 +1,45 @@
+\chapter{État de l’art}
+
+\section{Capteurs neuromorphiques}
+
+Les capteurs neuromorphiques, tels que le DVS346 ou le DAVIS, fonctionnent en détectant des changements d’intensité lumineuse au niveau de chaque pixel et en générant des événements asynchrones.  
+
+\textbf{Caractéristiques principales :}
+\begin{itemize}
+    \item Chaque pixel fonctionne indépendamment et émet un événement uniquement lors d’un changement significatif d’intensité.  
+    \item Très faible latence (microsecondes), permettant des réactions rapides.  
+    \item Faible consommation d’énergie, adaptée aux applications embarquées.  
+    \item Plage dynamique élevée, adaptée aux scènes à fort contraste.  
+\end{itemize}
+
+\section{Navigation robotique}
+
+La navigation robotique autonome nécessite la perception de l’environnement et la planification de trajectoires. Les capteurs traditionnels fournissent des images à une fréquence fixe, ce qui peut entraîner des problèmes de latence et de charge de calcul. Les capteurs neuromorphiques, en émettant des événements asynchrones, permettent une perception en temps réel plus efficace.  
+
+\subsection{Détection d’obstacles}
+
+\begin{itemize}
+    \item Méthodes traditionnelles : segmentation d’images, filtrage, SLAM classique.  
+    \item Limitation : latence élevée et charge de calcul importante pour les systèmes embarqués.  
+    \item Avantage des capteurs DVS : détection rapide des variations locales, faible consommation et haute fréquence d’actualisation des événements.  
+\end{itemize}
+
+\subsection{Détection d’égomotion}
+
+\begin{itemize}
+    \item Méthodes classiques : Optical Flow, Visual Odometry.  
+    \item Limitation : sensibilité au bruit, faible fréquence de mise à jour, difficulté en conditions à forte dynamique.  
+    \item Avantage des capteurs DVS : calcul de l’égomotion basé sur les événements pour obtenir une estimation continue et à faible latence.  
+\end{itemize}
+
+\section{Travaux précédents}
+
+Plusieurs études ont exploré l’utilisation des capteurs DVS pour la navigation de robots mobiles.  
+
+\begin{itemize}
+    \item Les approches incluent l’accumulation d’événements pour créer des images de contraste, le suivi de features et le calcul d’égomotion basé sur les événements.  
+    \item Ces travaux montrent une réduction significative de la latence et une meilleure performance dans des environnements à grande dynamique.  
+    \item Les méthodes développées permettent d’augmenter la robustesse de la navigation et la précision de la perception par rapport aux caméras classiques.  
+    \item Certaines recherches combinent les événements DVS avec des capteurs inertiels pour améliorer l’estimation de mouvement.  
+\end{itemize}
+

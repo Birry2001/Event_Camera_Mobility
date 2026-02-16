@@ -1,0 +1,20 @@
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+Ce rapport a presente une chaine complete allant de la perception evenementielle
+a l'integration navigation sur robot mobile. Le materiel (DAVIS346 + LIMO), les
+fondements theoriques, puis les choix d'implementation ROS 2 ont ete explicites
+de maniere coherente avec l'article de reference.
+
+La contribution principale est l'adaptation d'une approche de detection d'objets
+dynamiques basee sur compensation IMU, segmentation temporelle et clustering,
+puis son raccordement a Nav2 via l'injection d'obstacles dynamiques dans les
+costmaps.
+
+Les suites naturelles du travail sont:
+\begin{itemize}
+\item renforcer la robustesse en scenes fortement dynamiques et peu texturees;
+\item raffiner le suivi temporel des objets detectes;
+\item consolider l'evaluation quantitative (latence, precision detection,
+impact navigation) sur des campagnes de tests plus longues.
+\end{itemize}

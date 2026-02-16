@@ -1,0 +1,108 @@
+\documentclass{rapportENSIAS}
+\usepackage{lipsum}
+\usepackage{minted}
+\definecolor{bg}{rgb}{0.95,0.95,0.95} % Adjust the RGB values as needed
+\title{Rapport ENSIAS - Template} %Titre du fichier
+
+\begin{document}
+
+%----------- Informations du rapport ---------
+
+\titre{Titre du rapport} %Titre du fichier .pdf
+%\UE{UE PRO} %Nom de la UE
+\sujet{Compte Rendu des Travaux Pratiques} %Nom du sujet
+
+\enseignant{Prénom \textsc{Nom}} %Nom de l'enseignant
+
+\eleves{Rabii \textsc{ABOUAISSA} \\
+		Prénom \textsc{Nom} } %Nom des élèves
+
+%----------- Initialisation -------------------
+        
+\fairemarges %Afficher les marges
+\fairepagedegarde %Créer la page de garde
+\tabledematieres %Créer la table de matières
+
+
+%------------ Corps du rapport ----------------
+\section{Première section} 
+
+\lipsum[3-4]%Effacer cette ligne et écrire le texte souhaité
+
+\subsection{Subsection}
+
+\lipsum[3-4] %Effacer cette ligne et écrire le texte souhaité
+
+\section{Deuxième section}
+
+\lipsum[3-5] %Effacer cette ligne et écrire le texte souhaité
+
+
+
+
+%------------- Commandes utiles ----------------
+\newpage %pour ecrire dans une nouvelle page
+\section{Quelques commandes}
+
+Voici quelques commandes utiles :
+
+%------ Pour insérer et citer une image centralisée -----
+\subsection{Commande pour insérer et citer une image centralisée}
+
+\insererfigure{logos/ensias.png}{3cm}{Légende de la figure}{Label de la figure}
+% Le premier argument est le chemin pour la photo
+% Le deuxième est la hauteur de la photo
+% Le troisième la légende
+% Le quatrième le label
+Ici, je cite l'image \ref{fig: Label de la figure}
+
+
+%------- Pour insérer et citer une équation --------------
+\subsection{Commande pour insérer et citer une équation}
+
+\begin{equation} \label{eq: exemple}
+\rho + \Delta = 42
+\end{equation}
+
+L'équation \ref{eq: exemple} est cité ici. 
+
+% ------- Pour écrire des variables ----------------------
+
+Pour écrire des variables dans le texte, il suffit de mettre le symbole \$ entre le texte souhaité comme : constante $\rho$. 
+
+%------- Pour ecrire un code ------------------------------
+\subsection{Commande pour ecrire un code}
+
+%linenos pour avoir les nombres des lignes 
+%specifier la language de programmation utilisé
+
+\begin{listing}[!ht]
+\begin{minted}[bgcolor=bg,linenos]{C}
+#ifndef DECLARATION_H_INCLUDED
+#define DECLARATION_H_INCLUDED
+
+//declaration de structure qui englobe les donnees d'un adherant
+typedef struct _donnee
+{
+    char code[20];
+    char nom[20];
+    char domaineInteret[20];
+}donnees;
+
+#endif // DECLARATION_H_INCLUDED
+\end{minted}
+\caption{exemple de caption de code C}
+\label{listing 1}
+\end{listing}
+
+One-line code formatting also works with \texttt{minted}. For example, a small fragment of HTML like this:
+\mint{html}|<h2>Something <b>here</b></h2>|
+\noindent can be formatted correctly.
+
+
+%-------- si vous voulez ajouter liste des codes sources de document
+%----- un-comment these two lines
+%\renewcommand\listoflistingscaption{Liste des codes source}
+%\listoflistings
+
+\end{document}
