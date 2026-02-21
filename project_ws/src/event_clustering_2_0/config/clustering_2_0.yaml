@@ -1,92 +1,45 @@
 /**:
   ros__parameters:
-    # ============================
-    # ENTREES / SORTIE DU NOEUD
-    # ============================
-    # Masque binaire de segmentation amont.
+    # Inputs / output
     input_mask_topic: /event_mask
-
-    # Flux d'events deja compenses (ego-motion compensation).
     events_comp_topic: /events_compensated
-
-    # Unique sortie conservee: image couleur des clusters.
-    # Fond blanc + une couleur deterministe par cluster.
     clusters_color_topic: /event_clusters_color
 
-    # ============================
-    # SYNCHRONISATION ET DEBUG
-    # ============================
-    # Taille de la queue du synchroniseur (mask + events).
-    sync_queue_size: 3 # 10
-
-    # Tolerance temporelle max (s) entre masque et events.
+    # Synchronization and logs
+    sync_queue_size: 3
     sync_slop: 0.05
-
-    # Active/desactive les logs de statistiques a chaque callback.
     log_stats: false
 
-    # ============================
-    # SELECTION D'EVENTS PAR MASQUE
-    # ============================
-    # true  -> conserve uniquement les events dont le pixel est actif dans le masque.
-    # false -> clusterise tous les events compenses.
-    use_input_mask: true
-
-    # Seuil mini de pixel actif dans le masque d'entree.
+    # Event selection from input mask
+    use_input_mask: false
     input_mask_min_value: 1
+    mask_fallback_enable: true
+    mask_fallback_min_selected: 15
+    mask_fallback_on_empty_clusters: true
 
-    # ============================
-    # FILTRAGE MEDIAN ANTI-BRUIT
-    # ============================
-    # Filtre median sur le masque d'entree (sel/poivre).
-    median_filter_enable: false
+    # Optional mask denoising
+    median_filter_enable: true
+    median_filter_kernel: 5
 
-    # Taille du noyau median (doit etre impaire).
-    median_filter_kernel: 1
+    # Realtime event budget
+    max_events: 20
 
-    # ============================
-    # BUDGET TEMPS REEL
-    # ============================
-    # Nombre max d'events traites par callback.
-    max_events: 20 # 3000
-
-    # ============================
-    # ESTIMATION VITESSE LOCALE (v_i)
-    # ============================
-    # Rayon local de recherche du voisin precedent (pixels).
-    flow_search_radius_px: 3.0 # 4.0
-
-    # Delta-t min / max (s) pour estimer v = dx/dt.
+    # Local flow estimate
+    flow_search_radius_px: 3.0
     flow_dt_min_s: 0.00001
-    flow_dt_max_s: 0.015 # 0.03
-
-    # Saturation de vitesse (px/s) pour limiter les outliers.
+    flow_dt_max_s: 0.015
     flow_velocity_clip: 5000.0
-
-    # Gain applique aux vitesses avant DBSCAN.
     velocity_scale: 1.0
 
-    # ============================
-    # NORMALISATION SPATIO-TEMPORELLE
-    # ============================
-    # Facteur de mise a l'echelle du temps dans p=(x,y,t).
+    # Spatio-temporal normalization for p=(x,y,t)
     position_time_scale: 1000.0
 
-    # ============================
-    # DBSCAN + METRIQUE JOINTE (Eq. 12)
-    # C_ij = wp*||p_i-p_j|| + wv*||v_i-v_j||
-    # ============================
-    # Rayon de voisinage dans la metrique jointe.
-    dbscan_eps: 30.0 # 20.0
-
-    # Nombre minimal de voisins pour un point coeur DBSCAN.
-    dbscan_min_samples: 3 # 6
-
-    # Poids de la composante position spatio-temporelle.
+    # Joint DBSCAN metric: wp*||p_i-p_j|| + wv*||v_i-v_j||
+    dbscan_eps: 10.0
+    dbscan_min_samples: 3
     dbscan_wp: 1.0
-
-    # Poids de la composante vitesse.
     dbscan_wv: 0.002
-
-    # Taille minimale d'un cluster conserve.
     min_cluster_events: 10
+
+    # Draw each cluster with deterministic color; if false, white foreground
+    draw_each_cluster_color: true

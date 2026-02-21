@@ -55,7 +55,7 @@
 \ThisLRCornerWallPaper{1}{logos/background.png}
 	\centering %Centraliser le contenu
 	\includegraphics[width=0.5\textwidth]{logos/ensias.png}\par\vspace{1cm} %Insertion du logo
-	{\scshape\LARGE Ecole Universitaire de physique et d'ingénierie \par} %Nom de l'université
+	{\scshape\LARGE École Universitaire de physique et d'ingénierie \par} %Nom de l'université
 	\vspace{1.5cm}%Espace de 1,5cm
 	{\scshape\Large \rapportUE \\ \rapportsujet \par} %sous-titre
 	\vspace{1cm}%Espace de 1cm

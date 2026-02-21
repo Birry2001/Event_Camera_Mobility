@@ -3,11 +3,10 @@
     time_image_topic: /time_image
     count_image_topic: /count_image
     mask_topic: /event_mask
+    lambda_topic: /event_lambda_threshold
+
+
+    # foreground iff (abs(time_image) > abs(lambda)) and (count_image >= min_count)
     min_count: 1
-    use_time_image: true
-    invert_time: false
-    min_time: 0.0
-    log_stats: true
-    morph_open: false
-    morph_close: false
-    morph_kernel: 3
+
+    log_stats: false

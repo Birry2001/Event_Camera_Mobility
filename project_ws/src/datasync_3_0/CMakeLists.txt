@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(dv_ros2_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -32,6 +33,7 @@ target_link_libraries(motion_compensation_node
 ament_target_dependencies(motion_compensation_node
   rclcpp
   sensor_msgs
+  std_msgs
   dv_ros2_msgs
   cv_bridge
 )

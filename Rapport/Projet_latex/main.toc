@@ -1,21 +1,21 @@
 \babel@toc {french}{}\relax 
 \contentsline {chapter}{Introduction}{1}{chapter*.4}%
-\contentsline {chapter}{\numberline {1}Materiel et fondements theoriques}{2}{chapter.5}%
-\contentsline {section}{\numberline {1.1}Presentation du materiel}{2}{section.6}%
-\contentsline {subsection}{\numberline {1.1.1}Presentation de la camera DAVIS346 et fiche technique}{2}{subsection.7}%
-\contentsline {subsection}{\numberline {1.1.2}Presentation du robot LIMO}{3}{subsection.9}%
-\contentsline {section}{\numberline {1.2}Concepts theoriques mobilises}{3}{section.10}%
-\contentsline {subsection}{\numberline {1.2.1}Camera a evenements: notion, bref historique, avantages et limites}{3}{subsection.11}%
-\contentsline {subsection}{\numberline {1.2.2}Detection d'obstacles (IMO): panorama rapide des familles}{3}{subsection.12}%
-\contentsline {subsection}{\numberline {1.2.3}Navigation autonome et algorithme utilise dans le projet}{4}{subsection.13}%
-\contentsline {chapter}{\numberline {2}Methodologie}{5}{chapter.14}%
+\contentsline {chapter}{\numberline {1}Matériel et fondements théoriques}{2}{chapter.5}%
+\contentsline {section}{\numberline {1.1}Présentation du matériel}{2}{section.6}%
+\contentsline {subsection}{\numberline {1.1.1}Présentation de la caméra DAVIS346 et fiche technique}{2}{subsection.7}%
+\contentsline {subsection}{\numberline {1.1.2}Présentation du robot LIMO}{3}{subsection.9}%
+\contentsline {section}{\numberline {1.2}Concepts théoriques mobilisés}{3}{section.10}%
+\contentsline {subsection}{\numberline {1.2.1}Caméra à événements: notion, bref historique, avantages et limites}{3}{subsection.11}%
+\contentsline {subsection}{\numberline {1.2.2}Détection d'obstacles (IMO): panorama rapide des familles}{3}{subsection.12}%
+\contentsline {subsection}{\numberline {1.2.3}Navigation autonome et algorithme utilisé dans le projet}{4}{subsection.13}%
+\contentsline {chapter}{\numberline {2}Méthodologie}{5}{chapter.14}%
 \contentsline {section}{\numberline {2.1}Motion compensation}{5}{section.15}%
 \contentsline {section}{\numberline {2.2}Objects segmentation}{5}{section.16}%
 \contentsline {section}{\numberline {2.3}Objects clustering}{6}{section.17}%
-\contentsline {section}{\numberline {2.4}Creation d'une layer Nav2 pour les obstacles dynamiques}{6}{section.18}%
-\contentsline {chapter}{\numberline {4}Tests et analyse des resultats}{7}{chapter.19}%
-\contentsline {section}{\numberline {4.1}Protocole experimental}{7}{section.20}%
-\contentsline {section}{\numberline {4.2}Resultats}{7}{section.21}%
+\contentsline {section}{\numberline {2.4}Création d'une layer Nav2 pour les obstacles dynamiques}{6}{section.18}%
+\contentsline {chapter}{\numberline {4}Tests et analyse des résultats}{7}{chapter.19}%
+\contentsline {section}{\numberline {4.1}Protocole expérimental}{7}{section.20}%
+\contentsline {section}{\numberline {4.2}Résultats}{7}{section.21}%
 \contentsline {section}{\numberline {4.3}Analyse}{7}{section.22}%
 \contentsline {section}{\numberline {4.4}Discussion}{8}{section.23}%
 \contentsline {chapter}{Conclusion}{9}{chapter*.24}%

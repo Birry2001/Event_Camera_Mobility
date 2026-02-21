@@ -1,0 +1,1 @@
+- Vitesse de rotation du convoi: 0.28m/s
