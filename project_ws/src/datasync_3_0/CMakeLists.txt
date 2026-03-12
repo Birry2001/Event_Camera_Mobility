@@ -11,11 +11,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(dv_ros2_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 
-add_executable(motion_compensation_node src/Motion_Compensation.cpp)
+add_executable(motion_compensation_node
+  src/EventVisualizer.cpp
+  src/main.cpp
+)
 
 target_include_directories(motion_compensation_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -29,6 +33,7 @@ target_link_libraries(motion_compensation_node
 ament_target_dependencies(motion_compensation_node
   rclcpp
   sensor_msgs
+  std_msgs
   dv_ros2_msgs
   cv_bridge
 )

@@ -1,0 +1,608 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{float}
+
+%----------------------------------------------------------------------
+% Rapport de capitalisation pour le stage
+% Ce document compile les connaissances acquises au cours des échanges
+% avec des intelligences artificielles conversationnelles.  Il couvre
+% les principes des caméras événementielles, les algorithmes de
+% compensation de mouvement, la migration de ROS 1 vers ROS 2, la
+% programmation C++ moderne (RAII, multithreading) ainsi que les
+% outils et bonnes pratiques.  Les citations entre crochets
+% renvoient aux références consultées lors de la recherche
+% bibliographique.
+%----------------------------------------------------------------------
+
+\title{Rapport de capitalisation\bigskip\Huge Stage de synthèse en robotique}
+\author{\textbf{Stagiaire :}\ Votre Nom\\\textbf{Encadrant :}\ Nom de l’encadrant\\\textbf{Période :}\ Janvier 2026}
+\date{\today}
+
+% Mise en page personnalisée
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Rapport de capitalisation}
+\fancyhead[R]{\leftmark}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Ce rapport de capitalisation synthétise l’ensemble des connaissances et
+des échanges réalisés pendant un stage visant à développer un module
+d’évitement d’obstacles dynamique pour un robot mobile équipé d’une
+caméra événementielle (DAVIS 346) et fonctionnant sous ROS 2.  Les
+conversations avec des intelligences artificielles ont permis
+d’obtenir des explications, des conseils pratiques et des plans
+d’implémentation.  Le présent document regroupe ces informations en
+plusieurs chapitres pour en faire un ouvrage de référence.  Il
+commence par rappeler le contexte du stage et les objectifs visés,
+présente les principes fondamentaux des capteurs et des algorithmes
+employés, puis détaille la migration logicielle vers ROS 2, la
+programmation C++ moderne, l’intégration sur le robot Limo et les
+bonnes pratiques découvertes au fil des échanges.
+
+\chapter{Contexte du stage et objectifs}
+
+Le stage s’inscrit dans un projet de robotique mobile où l’objectif
+est de détecter et d’éviter des obstacles dynamiques en exploitant
+une caméra événementielle de type DAVIS 346.  Ce capteur fournit
+simultanément des flux d’événements (changement de luminosité par
+pixel) et des images standard (APS), ce qui permet d’obtenir une
+grande précision temporelle tout en restant compatible avec les
+algorithmes de vision traditionnels.  La mission consistait à :
+
+\begin{itemize}
+  \item Comprendre l’article de l’ICRA 2023 intitulé \emph{Event‑based
+  Real‑time Moving Object Detection Based on IMU Ego‑motion
+  Compensation}.  Cet article propose une méthode de compensation de
+  mouvement non linéaire basée sur les données d’une centrale
+  inertielle (IMU) pour isoler les objets mobiles dans un flux
+  d’événements.  L’approche est validée en temps réel avec une
+  latence inférieure à 10 ms, ce qui est essentiel pour les drones
+  ou les robots rapides.
+  \item Porter le code existant de ROS 1 vers ROS 2 (Humble).  Le
+  projet rpg\_dvs\_ros fournit un exemple de compensation de
+  mouvement en ROS 1, mais il n’est pas complet et n’intègre pas la
+  segmentation ni le regroupement d’objets.  Le passage à ROS 2
+  implique de revoir la structure des nœuds, la gestion des
+  paramètres, le système de build (ament\_cmake) et les politiques
+  \textit{Quality of Service} (QoS).
+  \item Implémenter les étapes manquantes de la chaîne de traitement
+  de l’article : génération des images temporelles (\emph{time
+  image}), seuillage dynamique, algorithme de clustering DBSCAN,
+  et, à terme, stratégie d’évitement d’obstacles.
+  \item Configurer un environnement de développement efficace
+  (VS Code, colcon, compile\_commands) et assurer le bon
+  fonctionnement du driver de la caméra (libcaer\_driver) ainsi que
+  des messages associés (event\_camera\_msgs et dvs\_msgs).
+\end{itemize}
+
+Au fil des échanges, de nombreux concepts transverses ont été
+abordés : principes des capteurs événementiels, bases et subtilités
+du langage C++, conception orientée objet et RAII, multithreading,
+configuration de ROS 2 (QoS, namespaces, remappings), ainsi que
+les bonnes pratiques pour le développement et le débogage.
+
+\chapter{Principes des caméras événementielles}
+
+Les caméras événementielles représentent une rupture par rapport aux
+capteurs d’images classiques.  Elles s’inspirent du fonctionnement
+biologique des yeux et détectent uniquement les changements de
+luminosité.  Chaque pixel travaille indépendamment et produit un
+\emph{événement} lorsqu’il constate un changement d’intensité.  Ce
+fonctionnement asynchrone permet d’atteindre une résolution
+temporelle de l’ordre de la microseconde et une dynamique de
+contraste supérieure à 120 dB, supprimant presque totalement le
+flou de mouvement【86159226765082†L129-L158】.  Un capteur DAVIS
+combine un détecteur d’événements (DVS) et une matrice APS capable
+de fournir des images classiques.  Les flux d’événements sont donc
+complétés par des images basse fréquence utiles pour la calibration
+ou l’affichage【86159226765082†L198-L200】.
+
+\section{Définition d’un événement}
+
+Un événement est défini par un quadruplet $(t, x, y, p)$ où
+\begin{itemize}
+  \item $t$ est l’horodatage précis de l’événement;
+  \item $(x, y)$ sont les coordonnées du pixel concerné;
+  \item $p \in \{+1, -1\}$ indique la polarité (augmentation ou
+  diminution de luminosité).
+\end{itemize}
+Contrairement à un flux vidéo à 30 images par seconde, un capteur
+événementiel génère un nombre variable d’événements proportionnel
+aux changements dans la scène.  Cela permet de traiter les
+mouvements rapides tout en réduisant la quantité de données à
+transmettre.
+
+\section{Avantages et limites}
+
+Les principaux avantages des caméras événementielles sont :
+\begin{itemize}
+  \item \textbf{Résolution temporelle élevée} : les pixels réagissent
+  immédiatement aux changements, avec des latences de quelques
+  microsecondes【86159226765082†L129-L158】.  Cela permet de suivre des
+  objets rapides sans flou.
+  \item \textbf{Plage dynamique étendue} : la dynamique de 120 dB
+  dépasse de loin celle des caméras classiques, ce qui permet de
+  fonctionner dans des scènes à très fort contraste【86159226765082†L129-L158】.
+  \item \textbf{Réduction de la bande passante} : seuls les
+  changements sont transmis, ce qui diminue fortement le nombre
+  d’octets à traiter.
+\end{itemize}
+En contrepartie, l’interprétation des événements bruts est
+complexe : les méthodes de vision traditionnelles (basées sur des
+matrices d’intensité) ne s’appliquent pas directement.  Il faut
+convertir les événements en représentations adaptées (images de
+temps, d’accumulation, cartes de flux optique) et tenir compte du
+problème d’ego‑mouvement : lorsqu’on déplace la caméra, tout le
+fond génère des événements; il devient difficile de distinguer ce qui
+est réellement mobile de ce qui correspond au mouvement du capteur.
+
+\chapter{Algorithme de détection d’objets mobiles}
+
+Cette partie résume et structure l’approche proposée dans l’article
+ICRA 2023 ainsi que les compléments à implémenter.  Le pipeline
+complet comprend quatre étapes : compensation de mouvement,
+construction d’images temporelles, segmentation par seuillage
+dynamique et clustering via DBSCAN.
+
+\section{Compensation de mouvement non linéaire}
+
+Le cœur de la méthode consiste à « rectifier » les événements afin
+d’annuler le mouvement de la caméra.  On suppose que la rotation
+dominante est mesurée par une IMU embarquée.  Soit $(x, y)$ les
+coordonnées d’un événement et $t$ l’horodatage relatif au début du
+paquet d’événements.  L’IMU fournit un vecteur de vitesse
+angulaire $\boldsymbol{\omega} = (\omega_x, \omega_y, \omega_z)$.  Les
+auteurs ont dérivé une relation non linéaire basée sur la
+géométrie projective : pour chaque événement, on calcule la rotation
+$\Delta\theta = \boldsymbol{\omega} \cdot t$, puis on applique le
+changement de repère via les fonctions tangente et arctangente :
+\begin{align*}
+    X_\mathrm{n} &= \tan\bigl(\arctan((x - C_x)/f_x) - \Delta\theta_x\bigr), \\
+    Y_\mathrm{n} &= \tan\bigl(\arctan((y - C_y)/f_y) - \Delta\theta_y\bigr),
+\end{align*}
+où $(C_x, C_y)$ sont les coordonnées du centre optique et $(f_x,
+f_y)$ la focale en pixels.  Les nouveaux points $(X_\mathrm{n},
+Y_\mathrm{n})$ sont ensuite convertis en indices d’image.  Cette
+formule est plus précise qu’une approximation linéaire, notamment
+pour des rotations rapides et pour des pixels situés en bordure du
+capteur.  Les tests expérimentaux montrent un gain de précision de
+10–15 \% par rapport aux approches linéaires【86159226765082†L129-L158】.
+
+\section{Construction des images temporelles}
+
+Après rectification, les événements de fond s’alignent.  On
+construit deux représentations :
+
+\begin{itemize}
+  \item \textbf{Time Image} : pour chaque pixel, on calcule la
+  moyenne des horodatages des événements qui y sont projetés.  Les
+  pixels du fond ont des temps moyens plus anciens (ils reçoivent
+  beaucoup d’événements tout au long du paquet), tandis que les
+  objets en mouvement ont des temps récents puisqu’ils ne sont
+  observés qu’à un instant donné.
+  \item \textbf{Count Image} : on compte le nombre d’événements
+  attribués à chaque pixel.  Cette image facilite la visualisation
+  et peut servir de poids pour la segmentation.
+\end{itemize}
+
+Ces images servent d’entrée à l’étape de segmentation.
+
+\section{Segmentation par seuillage dynamique}
+
+Pour extraire les objets mobiles, l’article propose un seuil
+dynamique $\lambda$ dépendant de la norme de la vitesse angulaire
+$\lVert \boldsymbol{\omega} \rVert$ : si le temps moyen $T_{ij}$
+d’un pixel $(i,j)$ est supérieur à $\lambda$, le pixel est marqué
+comme appartenant à un objet dynamique.  Le seuil est adapté pour
+tenir compte des variations de vitesse ; de manière générale, plus
+la rotation est rapide, plus on augmente le seuil afin de ne pas
+confondre le fond avec les artefacts dus à l’ego‑mouvement.  On
+obtient ainsi une carte binaire séparant le fond et les régions
+dynamiques.
+
+\section{Clustering par DBSCAN}
+
+Le nuage de pixels dynamiques résultant de la segmentation
+contient du bruit.  Pour regrouper les points appartenant au même
+objet, l’article utilise l’algorithme \textsc{DBSCAN}.  Ce
+clustering est basé sur la densité : il identifie les points ayant
+au moins $k$ voisins dans un rayon $\varepsilon$ comme des
+\textit{points centraux}, relie entre eux les points densément
+connectés et marque les points isolés comme du bruit【322056068821967†L328-L334】.
+Le DBSCAN a l’avantage de ne pas imposer un nombre de clusters
+prédéterminé et de tolérer des formes arbitraires.  Dans cette
+application, les paramètres $(\varepsilon, k)$ peuvent être
+ajustés en fonction de la distance estimée (par la taille apparente
+des objets) et du bruit du capteur.
+
+\section{Perspectives : suivi et évitement}
+
+L’article se concentre sur la détection instantanée.  Pour réaliser
+un système d’évitement d’obstacles, il sera nécessaire d’ajouter des
+étapes de suivi dans le temps (tracking) afin d’estimer la vitesse
+et la trajectoire des objets, puis de générer une commande de
+contournement pour le robot.  Des algorithmes comme le filtre de
+Kalman ou des trackers basés sur la corrélation d’événements pourront
+être explorés.
+
+\chapter{Migration de ROS 1 vers ROS 2}
+
+Le code fourni dans rpg\_dvs\_ros était destiné à ROS 1.  Pour
+l’intégrer au robot Limo qui utilise ROS 2 (Humble), un portage
+complet est nécessaire.  Ce chapitre recense les principales
+différences entre les deux versions et fournit un guide pratique.
+
+\section{Système de build}
+
+\begin{table}[H]
+    \centering
+    \caption{Comparaison des systèmes de build}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        Aspect                & ROS 1 (catkin)                        & ROS 2 (ament\_cmake) \\
+        \midrule
+        Outil de compilation & \texttt{catkin\_make} ou
+        \texttt{catkin\_build} & \texttt{colcon build} \\
+        Fichier principal    & \texttt{CMakeLists.txt}              & \texttt{CMakeLists.txt} avec find\_package(ament\_cmake) \\
+        Gestion des dépendances & \texttt{find\_package(...)}         & \texttt{find\_package(...)} suivie de
+        \texttt{ament\_target\_dependencies} \\
+        Installation         & \texttt{install(TARGETS ...)} à la
+        main dans ROS 1 & Installation automatique via ament pour que
+        \texttt{ros2 run} trouve l’exécutable \\
+        Export des commandes & optionnel (pas toujours généré) & possibilité de générer
+        \texttt{compile\_commands.json} pour IntelliSense \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:build}
+\end{table}
+
+Pour porter un paquet, on remplace les instructions catkin par
+\texttt{ament\_cmake}.  On doit lister explicitement toutes les
+dépendances dans \texttt{find\_package} puis les lier avec
+\texttt{ament\_target\_dependencies}.  Enfin, on veille à ce que
+l’exécutable soit installé dans le dossier \texttt{install/lib} via
+\texttt{install(TARGETS ... DESTINATION lib/\${PROJECT\_NAME})}.  Sans
+cette installation, la commande \texttt{ros2 run} ne trouve pas
+l’exécutable.
+
+\section{Structure des nœuds et paramètres}
+
+Dans ROS 1, un nœud est généralement une fonction \verb|int main| qui
+instancie un \texttt{ros::NodeHandle} et crée des publishers,
+subscribers et services.  Les paramètres sont stockés dans un
+\emph{paramètre server} global.  En ROS 2, on favorise
+l’héritage de la classe \texttt{rclcpp::Node}, ce qui permet
+d’encapsuler logiquement les abonnements et publications.  Les
+paramètres ne sont plus globaux : chaque nœud doit déclarer ses
+paramètres dans son constructeur à l’aide de
+\texttt{this->declare\_parameter(...)} puis les récupérer avec
+\texttt{this->get\_parameter(...)}.  La méthode
+\texttt{get\_parameter} renvoie un objet \texttt{rclcpp::Parameter}
+qui doit être converti explicitement (\texttt{.as\_int()},
+\texttt{.as\_double()}, etc.)【932557426256562†L286-L303】.  Les
+déclarations de paramètres garantissent que le système peut valider
+les types et fournir une aide via les fichiers YAML.
+
+\section{Qualité de service (QoS)}
+
+ROS 2 introduit la notion de politiques de communication.  Un topic
+n’est connecté que si les QoS du publisher et du subscriber sont
+compatibles.  Pour les capteurs haute fréquence (IMU, événements,
+images), on utilise généralement le profil
+\texttt{rclcpp::SensorDataQoS} qui définit une fiabilité
+\emph{BEST\_EFFORT} et une profondeur adaptée.  Ce profil accepte
+que certains messages soient perdus afin de ne pas bloquer la
+pipeline.  Les messages de commande ou de contrôle préfèrent une
+fiabilité \emph{RELIABLE} et une petite file d’attente.
+
+\section{Namespaces et remappages}
+
+Les noms de topics en ROS 2 sont résolus en tenant compte du
+namespace du nœud.  Utiliser un nom commençant par \verb|~/| revient à
+le préfixer par le nom du nœud, ce qui est pratique pour éviter les
+collisions.  Les remappings se font soit dans le code (via
+\texttt{remappings} dans un launch file), soit en ligne de commande.
+Comprendre les règles de résolution des noms est essentiel pour
+connecter correctement un driver (par exemple libcaer\_driver qui
+publie sur \verb|~/events| et \verb|~/imu|) avec un nœud de
+traitement.
+
+\section{Packages ROS 2 pour les caméras événementielles}
+
+Le groupe ros‑event‑camera maintient les paquets compatibles ROS 2 :
+\begin{itemize}
+  \item \textbf{libcaer\_driver} : pilote pour caméras DAVIS et
+  DVXplorer; publie des messages sur \verb|~/events|,
+  \verb|~/imu| et \verb|~/image_raw|.
+  \item \textbf{event\_camera\_msgs} : définitions de messages
+  efficaces pour les événements; ce paquet remplace avantageusement
+  \texttt{dvs\_msgs} en ROS 2.  Toutefois, \texttt{dvs\_msgs} est
+  toujours disponible pour assurer la compatibilité ascendante.
+  \item \textbf{event\_camera\_renderer} : fournit des outils
+  permettant d’afficher les événements dans RViz ou sur l’écran.
+\end{itemize}
+Le tableau \ref{tab:packages} résume la correspondance entre les
+paquets ROS 1 et leurs équivalents ROS 2.
+
+\begin{table}[H]
+    \centering
+    \caption{Migration des paquets liés aux caméras événementielles}
+    \label{tab:packages}
+    \begin{tabular}{@{}ll@{}}
+    \toprule
+    Paquet ROS 1            & Paquet ROS 2 équivalent \\ \midrule
+    \texttt{davis\_ros\_driver}    & \texttt{libcaer\_driver} \\ 
+    \texttt{dvs\_msgs}      & \texttt{event\_camera\_msgs} (ou \texttt{dvs\_msgs}) \\ 
+    \texttt{dvs\_renderer}  & \texttt{event\_camera\_renderer} \\ 
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Exemple de structure de nœud en ROS 2}
+
+Le code suivant illustre la création d’un nœud de compensation en
+ROS 2.  On dérive de \texttt{rclcpp::Node}, on déclare les
+paramètres et on crée les abonnements avec un QoS adapté.
+
+\begin{lstlisting}[language=C++,caption={Extrait d’un nœud ROS 2},label=lst:node]
+class MotionCompensationNode : public rclcpp::Node {
+public:
+  MotionCompensationNode() : Node("motion_compensation") {
+    // Déclaration des paramètres avec valeurs par défaut
+    this->declare_parameter<int>("height", 260);
+    this->declare_parameter<int>("width", 346);
+    this->declare_parameter<double>("focus", 6550.0);
+    // Récupération des paramètres
+    this->get_parameter("height", height_);
+    this->get_parameter("width",  width_);
+    this->get_parameter("focus", focus_);
+    // Création des abonnements avec QoS SensorData
+    auto qos = rclcpp::SensorDataQoS();
+    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "~/imu", qos, std::bind(&MotionCompensationNode::imuCallback, this, std::placeholders::_1));
+    events_sub_ = this->create_subscription<dvs_msgs::msg::EventArray>(
+      "~/events", qos, std::bind(&MotionCompensationNode::eventsCallback, this, std::placeholders::_1));
+    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("~/image_raw", 10);
+  }
+private:
+  void imuCallback(sensor_msgs::msg::Imu::SharedPtr msg);
+  void eventsCallback(dvs_msgs::msg::EventArray::SharedPtr msg);
+  // ...
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
+  rclcpp::Subscription<dvs_msgs::msg::EventArray>::SharedPtr events_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
+  int height_{};
+  int width_{};
+  double focus_{};
+};
+\end{lstlisting}
+
+Cette structure clarifie la séparation des responsabilités : le
+constructeur gère la configuration, les callbacks s’occupent du
+traitement des messages, et les variables membres remplacent les
+globales de la version ROS 1.
+
+\chapter{Programmation C++ moderne}
+
+Au cours du stage, de nombreux points de langage ont été abordés.  Ce
+chapitre résume les notions essentielles pour écrire un code fiable et
+performant en C++.
+
+\section{RAII et gestion des ressources}
+
+Le paradigme \emph{Resource Acquisition Is Initialization} (RAII)
+consiste à gérer l’acquisition et la libération des ressources dans
+les constructeurs et destructeurs d’objets.  Ceci garantit que les
+ressources (mémoire, fichiers, mutex) sont libérées même en cas
+d’exception ou de retour anticipé.  Par exemple, \texttt{std::lock\_guard}
+verrouille un \texttt{std::mutex} à la construction et le libère
+automatiquement à la destruction.  En utilisant RAII, on évite les
+fuites et les blocages que pourrait provoquer un oubli d’appel
+\texttt{unlock()}.  Il est recommandé de préférer
+\texttt{std::lock\_guard} ou \texttt{std::unique\_lock} à
+\texttt{mutex.lock()} / \texttt{mutex.unlock()}.
+
+\section{Multithreading et synchronisation}
+
+Le traitement des événements et des données IMU se fait dans des
+callbacks exécutés potentiellement en parallèle.  Pour éviter les
+conditions de course, on protège les buffers partagés avec des
+\texttt{std::mutex}.  L’utilisation de \texttt{std::lock\_guard}
+garantit la libération du verrou.  On peut également recourir à
+\texttt{std::unique\_lock} lorsque l’on souhaite verrouiller et
+déverrouiller à des moments précis ou utiliser un verrou
+conditionnel.
+
+Pour améliorer les performances, il est conseillé de limiter les
+calculs coûteux (trigonométrie) dans les boucles et de regrouper
+les copies de données.  L’utilisation d’un \texttt{rclcpp::
+executors::MultiThreadedExecutor} permet à ROS 2 de lancer plusieurs
+callbacks en parallèle en fonction du nombre de cœurs disponibles.
+
+\section{std::bind et lambdas}
+
+Lors de la création de subscribers, on transmet une fonction de
+rappel.  Deux approches existent :
+
+\begin{itemize}
+  \item \textbf{\texttt{std::bind}} : lie les arguments et
+  l’instance de la classe.  Par exemple :
+  \texttt{std::bind(&Class::method, this, \_1)}.
+  \item \textbf{Lambdas capturant \texttt{this}} : plus concis
+  \texttt{[this](auto msg) \{ this->method(msg); \}}.
+\end{itemize}
+Les lambdas sont recommandées pour leur lisibilité et car elles
+permettent d’éviter les erreurs de type.  L’essentiel est d’associer
+correctement la méthode à l’instance actuelle.
+
+\section{Gestion de la mémoire et performances}
+
+La compensation et le clustering nécessitent de parcourir des
+dizaines de milliers d’événements par seconde.  Pour maintenir le
+temps réel, on veille à :
+
+\begin{itemize}
+  \item Éviter les allocations dynamiques répétées à l’intérieur des
+  boucles (réserver la mémoire des vecteurs).
+  \item Utiliser des types natifs (\texttt{float}, \texttt{double})
+  et éviter les conversions inutiles.
+  \item Exploiter l’optimisation du compilateur (options
+  \texttt{-O3}) et, si nécessaire, paralléliser les boucles avec
+  OpenMP ou TBB.
+\end{itemize}
+
+\chapter{Environnement de développement et outils}
+
+\section{Configuration de VS Code}
+
+L’IDE VS Code est pratique pour développer en ROS 2 grâce à ses
+extensions.  Toutefois, l’autocomplétion (IntelliSense) doit savoir
+où chercher les fichiers d’en‑tête.  Après compilation avec
+\texttt{colcon build}, les headers des paquets installés se trouvent
+dans \verb|install/<package>/include|.  On ajoute ce chemin dans
+\texttt{.vscode/c\_cpp\_properties.json} :
+
+\begin{lstlisting}[language=json,caption={Exemple de configuration VS Code},label=lst:cppprops]
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/install/**/include",
+                "/opt/ros/humble/include/**"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
+\end{lstlisting}
+
+On peut également générer un fichier \texttt{compile\_commands.json}
+en passant l’option
+\texttt{--cmake-args -DCMAKE\_EXPORT\_COMPILE\_COMMANDS=ON} à
+\texttt{colcon build}.  Ce fichier permet à l’IDE de connaître
+exactement les arguments de compilation de chaque fichier source.
+
+\section{Utilisation de libcaer\_driver}
+
+Pour utiliser la DAVIS 346 en ROS 2, on installe le paquet
+\texttt{libcaer\_driver} via apt ou à partir des sources.  Le
+driver publie plusieurs topics privés (\verb|~/events|, \verb|~/imu|,
+\verb|~/image_raw|).  Il est lancé via un fichier launch qui permet de
+configurer le type de caméra, l’identifiant, l’activation de
+l’APS et de l’IMU, et de remapper les topics si besoin.  Voici un
+extrait de lancement :
+
+\begin{lstlisting}[language=Python,caption={Lancement du driver libcaer},label=lst:launch]
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+
+def launch_setup(context, *args, **kwargs):
+    node = Node(
+        package='libcaer_driver',
+        executable='driver_node',
+        name=LaunchConfiguration('camera_name'),
+        parameters=[{
+            'device_type': LaunchConfiguration('device_type'),
+            'dvs_enabled': True,
+            'imu_accel_enabled': True,
+            'imu_gyro_enabled': True,
+            'aps_enabled': False,
+            'event_message_time_threshold': 1.0e-3,
+        }],
+        remappings=[('~/reset_timestamps', LaunchConfiguration('reset_topic'))],
+    )
+    return [node]
+
+def generate_launch_description():
+    return LaunchDescription([
+        DeclareLaunchArgument('camera_name', default_value='event_camera'),
+        DeclareLaunchArgument('device_type', default_value='davis'),
+        DeclareLaunchArgument('reset_topic', default_value='~/reset_timestamps'),
+        OpaqueFunction(function=launch_setup),
+    ])
+\end{lstlisting}
+
+Ce fichier montre que le nom réel du nœud est déterminé par
+\texttt{camera\_name}; les topics préfixés par \verb|~/| seront donc
+résolus en \texttt{/event\_camera/events}, etc.  Comprendre ce
+comportement est indispensable pour connecter correctement vos
+abonnements.
+
+\section{Plan de travail et recommandations}
+
+L’organisation proposée lors des échanges prévoit un déroulement en
+plusieurs phases :
+
+\begin{enumerate}
+  \item \textbf{Semaine 1–2} : portage du code ROS 1 vers ROS 2,
+  création d’un paquet \texttt{datasync} avec la nouvelle
+  structure, déclaration des paramètres, mise en place du QoS
+  \texttt{SensorDataQoS}, compilation avec colcon, vérification des
+  exécutions avec un bag de test.
+  \item \textbf{Semaine 3–4} : intégration sur le robot Limo :
+  installer libcaer\_driver sur la machine embarquée, calibrer
+  l’alignement IMU/caméra, optimiser le code pour le processeur
+  embarqué (réduction des appels trigonométriques, utilisation de
+  pointeurs bruts, etc.).
+  \item \textbf{Semaine 5–6} : implémentation de la segmentation
+  dynamique, réglage du seuil en fonction de la vitesse, premier
+  test de clustering avec DBSCAN; évaluation de la précision et du
+  temps d’exécution.
+  \item \textbf{Semaine 7–8} : ajout d’un suivi temporel des objets,
+  amélioration de la robustesse (filtrage du bruit, fusion de
+  clusters), développement d’une stratégie de navigation pour
+  contourner les obstacles détectés.
+\end{enumerate}
+
+Cette planification est indicative et peut être adaptée en
+fonction des contraintes de terrain (mise à disposition du robot,
+fiabilité des drivers, etc.).
+
+\chapter{Conclusion et perspectives}
+
+Le travail de capitalisation effectué à travers ce rapport offre un
+panorama complet des connaissances nécessaires pour développer une
+chaîne de détection d’obstacles dynamiques avec une caméra
+événementielle sous ROS 2.  Nous avons exploré les principes des
+capteurs bio‑inspirés, détaillé les étapes de compensation de
+mouvement non linéaire et de regroupement des événements, étudié la
+migration de ROS 1 vers ROS 2 ainsi que les outils de développement
+associés.  Des notions transverses de programmation C++ moderne
+(RAII, multithreading, lambdas) ont été mises en avant afin de
+produire un code robuste et maintenable.
+
+La suite du projet consistera à implémenter les briques manquantes
+(segmentation, clustering), à optimiser l’algorithme pour des
+plateformes embarquées et à intégrer un module de navigation.
+Grâce à cette base solide, le stagiaire dispose d’un véritable
+manuel de référence pour affronter les problèmes rencontrés et
+réutiliser les solutions décrites.
+
+\end{document}

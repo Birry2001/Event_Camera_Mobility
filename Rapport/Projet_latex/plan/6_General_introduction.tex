@@ -1,0 +1,20 @@
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Ce rapport présente la conception et l'intégration d'une chaîne de perception
+neuromorphique pour la navigation autonome d'un robot mobile LIMO équipé d'une
+caméra DAVIS346.
+
+Le cœur du projet est l'implémentation d'une méthode de détection d'objets en
+mouvement basée sur la compensation d'ego-mouvement par IMU dans un flux
+d'événements. Cette approche est ensuite raccordée à Nav2 afin d'injecter des
+obstacles dynamiques dans la prise de décision de navigation.
+
+Le document est organisé comme suit:
+\begin{itemize}
+\item le chapitre 1 introduit le matériel et les fondements théoriques;
+\item le chapitre 2 détaille la méthodologie d'implémentation de l'article
+retenu et son adaptation ROS 2;
+\item le chapitre 4 présente le protocole de test et l'analyse des résultats;
+\item la conclusion synthétise les acquis et les perspectives.
+\end{itemize}

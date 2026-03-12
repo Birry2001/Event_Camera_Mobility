@@ -1,9 +1,0 @@
-[INFO] [1767274482.237093191] [rosbag2_storage]: Opened database '/home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Ros_bags/Event_datas/rosbag2_2025_12_19-13_54_18/rosbag2_2025_12_19-13_54_18_0.db3' for READ_ONLY.
-[INFO] [1767274482.237976032] [rosbag2_player]: Set rate to 1
-[INFO] [1767274482.273909807] [rosbag2_player]: Adding keyboard callbacks.
-[INFO] [1767274482.273968552] [rosbag2_player]: Press SPACE for Pause/Resume
-[INFO] [1767274482.273988236] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
-[INFO] [1767274482.274003084] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
-[INFO] [1767274482.274015010] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
-[INFO] [1767274482.274556468] [rosbag2_storage]: Opened database '/home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Ros_bags/Event_datas/rosbag2_2025_12_19-13_54_18/rosbag2_2025_12_19-13_54_18_0.db3' for READ_ONLY.
-[INFO] [1767274511.770098635] [rclcpp]: signal_handler(signum=15)

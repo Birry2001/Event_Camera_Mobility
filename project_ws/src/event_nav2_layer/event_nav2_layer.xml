@@ -1,0 +1,7 @@
+<library path="event_nav2_layer">
+  <class name="event_nav2_layer::EventNav2Layer"
+         type="event_nav2_layer::EventNav2Layer"
+         base_class_type="nav2_costmap_2d::Layer">
+    <description>Costmap layer that marks dynamic obstacles from PointCloud2.</description>
+  </class>
+</library>

@@ -1,8 +1,0 @@
-1767274911.0511405 [INFO] [launch]: All log files can be found below /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/.ros_log/2026-01-01-14-41-51-049911-nochi-HP-Laptop-15-da1xxx-639837
-1767274911.0513182 [INFO] [launch]: Default logging verbosity is set to INFO
-1767274911.1274974 [INFO] [ros2-1]: process started with pid [639838]
-1767274911.1277592 [INFO] [event_tf_static_node-2]: process started with pid [639840]
-1767274911.1279140 [INFO] [Motion_Compensation-3]: process started with pid [639842]
-1767274911.1280425 [INFO] [event_segmentation_node-4]: process started with pid [639844]
-1767274911.1281767 [INFO] [event_clustering_node-5]: process started with pid [639846]
-1767274992.4721997 [INFO] [ros2-1]: process has finished cleanly [pid 639838]

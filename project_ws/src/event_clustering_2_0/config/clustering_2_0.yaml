@@ -1,0 +1,50 @@
+/**:
+  ros__parameters:
+    # Inputs / output
+    input_mask_topic: /event_mask
+    events_comp_topic: /events_compensated
+    clusters_color_topic: /event_clusters_color
+    objects_cloud_topic: /dynamic_obstacles
+    objects_cloud_enable: true
+    objects_cloud_frame_id: base_link
+    objects_cloud_scale_xy_m: 0.01
+    objects_cloud_z_m: 0.0
+
+    # Synchronization and logs
+    sync_queue_size: 3
+    sync_slop: 0.05
+    log_stats: false
+
+    # Event selection from input mask
+    use_input_mask: false
+    input_mask_min_value: 1
+    mask_fallback_enable: true
+    mask_fallback_min_selected: 15
+    mask_fallback_on_empty_clusters: true
+
+    # Optional mask denoising
+    median_filter_enable: true
+    median_filter_kernel: 5
+
+    # Realtime event budget
+    max_events: 20
+
+    # Local flow estimate
+    flow_search_radius_px: 3.0
+    flow_dt_min_s: 0.00001
+    flow_dt_max_s: 0.015
+    flow_velocity_clip: 5000.0
+    velocity_scale: 1.0
+
+    # Spatio-temporal normalization for p=(x,y,t)
+    position_time_scale: 1000.0
+
+    # Joint DBSCAN metric: wp*||p_i-p_j|| + wv*||v_i-v_j||
+    dbscan_eps: 10.0
+    dbscan_min_samples: 3
+    dbscan_wp: 1.0
+    dbscan_wv: 0.002
+    min_cluster_events: 10
+
+    # Draw each cluster with deterministic color; if false, white foreground
+    draw_each_cluster_color: true

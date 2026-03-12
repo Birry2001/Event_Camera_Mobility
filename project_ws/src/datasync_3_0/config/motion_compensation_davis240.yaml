@@ -3,12 +3,80 @@ datasync_node:
     # DAVIS 240 defaults for this bag
     weight_param: 240
     height_param: 180
-    focus: 4000.0
+    focus: 3683.2
     pixel_size: 18.5
 
     # For this bag, IMU lags behind events
     require_imu_ahead: false
+    # IMU averaging window (nanoseconds)
+    imu_window_ns: 8000000
 
     events_topic: "events"
     imu_topic: "imu"
     count_image_topic: "count_image"
+    time_image_topic: "time_image"
+    publish_time_image: true
+    time_image_vis_topic: "time_image_vis"
+    publish_time_image_vis: true
+    sort_events_by_time: true
+    lambda_a: 0.564
+    lambda_b: 0.075
+
+    # Prefilter events before motion compensation
+    prefilter_enable: true
+    prefilter_refractory_enable: true
+    prefilter_refractory_us: 600
+    prefilter_ba_enable: true
+    prefilter_ba_radius_px: 2
+    prefilter_ba_window_us: 4000
+    prefilter_ba_min_neighbors: 1
+    prefilter_ba_same_polarity_only: false
+    prefilter_ba_support_from_kept_only: false
+    prefilter_hot_pixel_enable: false
+    prefilter_hot_pixel_max_events_per_batch: 9
+    prefilter_log_stats: false
+
+    postfilter_enable: false
+    post_refractory_enable: false
+    post_refractory_us: 700
+    post_hot_pixel_enable: false
+    post_hot_pixel_max_events_per_pixel: 9
+    postfilter_min_count_per_pixel: 3
+    postfilter_neighbor_radius_px: 1
+    postfilter_min_count_in_neighborhood: 8
+    postfilter_min_component_pixels: 2
+    postfilter_adaptive_enable: true
+    postfilter_adaptive_min_keep_pixels: 12
+    postfilter_adaptive_min_keep_ratio: 0.04
+    postfilter_apply_to_compensated_events: true
+    postfilter_log_stats: false
+
+    # Motion-phase specific behavior (camera moving)
+    motion_phase_enable: true
+    motion_phase_omega_threshold: 0.12
+    motion_phase_omega_hysteresis: 0.05
+    motion_phase_lambda_scale: 0.82
+    motion_phase_lambda_min: 0.035
+    motion_phase_lambda_quantile_enable: true
+    motion_phase_lambda_quantile: 0.65
+    motion_phase_lambda_quantile_mix: 0.65
+    motion_phase_bg_suppress_enable: true
+    motion_phase_bg_abs_time_factor: 0.80
+    motion_phase_bg_abs_time_floor: 0.030
+    motion_phase_bg_quantile: 0.25
+    motion_phase_bg_preserve_high_count: true
+    motion_phase_bg_preserve_count_threshold: 3
+    motion_phase_bg_min_keep_ratio: 0.25
+    motion_phase_bg_min_keep_pixels: 60
+    motion_phase_log_stats: false
+
+    # Noise / segmentation-pass metrics (Float32MultiArray)
+    metrics_enable: true
+    noise_metrics_topic: "/event_noise_metrics"
+    metrics_log_stats: false
+    metrics_isolation_radius_px: 1
+    metrics_isolation_window_us: 2000
+    metrics_hot_pixel_threshold: 8
+    metrics_small_component_pixels: 3
+    metrics_segmentation_min_count: 1
+    metrics_motion_omega_min: 0.1

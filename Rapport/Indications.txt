@@ -1,0 +1,28 @@
+1 - Sur la page de garde, remplaces École Nationale Supérieure
+d’Informatique et d’Analyse des Systèmes
+- Rabat par Ecole Universitaire de physique et d'ingénierie ; 
+2 - Voici le plan que notre rapport va suivre:
+
+ Introduction
+ 
+- Chap1 : materiel et fondements theoriques
+A - Présentation du matériel : 
+a) Présentation de la camera ( + fiche technique ); tu t'inspire UNIQUEMENT de ces documents : ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Documentation/davis346.pdf ); ( /Home/Downloads/DAVIS346.pdf)
+b) Présentation du robot; Tu vas t'inspirer uniquement de ces ressources: ( https://www.youtube.com/watch?v=G19B7R4gIGU ) ; ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Documentation/LIMO-ROS2-humble(EN)(2).md );
+B - Concepts Concepts théoriques abordés ( ici tu peux trouver un mot plus adéquat que "abordés" si possible ) ou on va aborder:
+a) La notion de caméra à évènement( qui est un capteur neuromorphique ), avec un TRES bref historique ; les avantages et inconvénients
+b) La détection d'obstacles ( IMO Detection ), ou tu vas très rapidement mentionner les grandes familles existantes
+
+Pour les parties a et b précédentes, tu vas uniquement t'inspirer de ce papier de review : /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Articles/Neuromorphic Perception and Navigation for Mobile Robots_ A Review.pdf
+c) Partie navigation autonome: Ici tu vas:
+ - Parler vite fait de l'algo de navigation utilisé dans notre projet ( Tu peux trouver pour cela des indications ici : https://github.com/agilexrobotics/limo_ros2_doc/blob/master/LIMO-ROS2-humble(EN).md ;)
+ 
+- Chap2 : Méthodologie: Ici on va tout simlement expliquer comment on implémente l'article Event-based_Real-time_Moving_Object_Detection_Based_On_IMU_Ego-motion_Compensation.pdf
+a - Explication rapide de la motion compensation : explication théorique du procédé en mentionnant comment cela est implémenté. Expliquer qu'initialement on a eu accès à la version ros1 du package de motion compensation ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/package_motion_compensation_ROS1/Jhonny-Li-Motion-compensation-f6ae84b ) Qu'on a adapté en ROS2 ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/src/datasync_3_0 )
+b - L'objects segmentation : Explication théorique de la méthode et mentionnant comment cela est implémenté ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/src/event_segmentation )
+c - L'objects clustering : Explication théorique de la méthode et mentionnant comment cela est implémenté ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/src/event_clustering )
+Pour les points a,b et c tu vas t'inspirer pour les explications théoriques UNIQUEMENT de l'article qu'on a implémenté ( /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/Articles/Event-based_Real-time_Moving_Object_Detection_Based_On_IMU_Ego-motion_Compensation.pdf )
+d - Création d'une layer Nav2 contenant les obstacles dynamiques : Explication très rapide ( sans entrer dans les détail ) de comment cela se fait ( ici tu vas t'inspirer uniquement des tuto officiels de nav2 : ( https://docs.nav2.org/plugin_tutorials/docs/writing_new_costmap2d_plugin.html) ; ( https://docs.nav2.org/configuration/packages/configuring-costmaps.html )
+
+- Chap4 : Test et analyse des résultats
+- Conclusion 

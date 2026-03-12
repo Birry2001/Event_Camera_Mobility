@@ -5,22 +5,44 @@ datasync_node:
     height_param: 260
     focus: 6550.0
     pixel_size: 18.5
-    # Keep true to match ROS1 behavior; set false for bags with IMU lag
     require_imu_ahead: true
+    imu_window_ns: 10000000
 
-    # dv_ros2_capture publishes relative topics: events, imu
+    # Topics
     events_topic: "events"
     imu_topic: "imu"
     count_image_topic: "count_image"
+    time_image_topic: "time_image"
+    publish_time_image: true
+    time_image_vis_topic: "time_image_vis"
+    publish_time_image_vis: true
+    sort_events_by_time: true
 
-    # Alternative configs (uncomment and adjust)
-    # DVXplorer
-    # weight_param: 640
-    # height_param: 480
-    # focus: 5294.0
-    # pixel_size: 9.0
-    # DAVIS 240C
-    # weight_param: 240
-    # height_param: 180
-    # focus: 4000.0
-    # pixel_size: 18.5
+    # Lambda threshold
+    lambda_a: 0.5
+    lambda_b: 0.075
+
+    # Prefilters before motion compensation
+    prefilter_enable: true
+    prefilter_refractory_enable: true
+    prefilter_refractory_us: 600
+    prefilter_ba_enable: true
+    prefilter_ba_radius_px: 2
+    prefilter_ba_window_us: 4000
+    prefilter_ba_min_neighbors: 1
+    prefilter_ba_same_polarity_only: false
+    prefilter_ba_support_from_kept_only: false
+    prefilter_hot_pixel_enable: false
+    prefilter_hot_pixel_max_events_per_batch: 9
+    prefilter_log_stats: false
+
+    # Noise metrics publication (diagnostic only, no filtering)
+    metrics_enable: true
+    noise_metrics_topic: "/event_noise_metrics"
+    metrics_log_stats: false
+    metrics_isolation_radius_px: 1
+    metrics_isolation_window_us: 2000
+    metrics_hot_pixel_threshold: 8
+    metrics_small_component_pixels: 3
+    metrics_segmentation_min_count: 1
+    metrics_motion_omega_min: 0.1

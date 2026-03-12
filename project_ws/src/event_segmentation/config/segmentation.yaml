@@ -1,0 +1,12 @@
+/**:
+  ros__parameters:
+    time_image_topic: /time_image
+    count_image_topic: /count_image
+    mask_topic: /event_mask
+    lambda_topic: /event_lambda_threshold
+
+
+    # foreground iff (abs(time_image) > abs(lambda)) and (count_image >= min_count)
+    min_count: 1
+
+    log_stats: false
