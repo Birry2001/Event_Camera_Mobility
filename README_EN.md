@@ -1,95 +1,140 @@
+# LIMO-DAVIS: Mobile Obstacle Detection with an Event Camera (ROS 2)
 
+![ROS2 Humble](https://img.shields.io/badge/ROS2-Humble-blue)
+![Platform LIMO](https://img.shields.io/badge/Platform-AgileX%20LIMO-orange)
+![Sensor DAVIS346](https://img.shields.io/badge/Sensor-DAVIS--346-green)
 
-# LIMO-DAVIS: Event-Based Dynamic Obstacle Detection for Robust Navigation
+## 1) Overview
 
-## General Overview
+This repository contains a full ROS 2 pipeline for **mobile obstacle detection using an event camera**, inspired by:
 
-This repository contains a **Master’s level project in robotics and artificial perception**, whose goal is to **improve the robustness of autonomous navigation on the AgileX LIMO robot** under challenging conditions by integrating a **DAVIS-346 event-based camera** into the existing ROS 2 stack.
+- Chunhui Zhao, Yakun Li, Yang Lyu, *Event-based Real-time Moving Object Detection Based on IMU Ego-motion Compensation*, IEEE ICRA 2023.
+- DOI: https://doi.org/10.1109/ICRA48891.2023.10160472
+- IEEE Xplore: https://ieeexplore.ieee.org/document/10160472
 
-The project follows an **experimental and comparative approach**, first evaluating the performance of the existing SLAM + Navigation pipelines on the LIMO platform, and then proposing an **event-based dynamic obstacle detection module** integrated into **Nav2**.
+The implemented pipeline includes three main blocks, inspired by the paper:
 
----
+1. **Motion compensation** (IMU ego-motion) with `datasync_3_0`
+2. **Foreground/background segmentation** with `event_segmentation`
+3. **Moving object clustering** with `event_clustering_2_0`
+4. **Nav2 projection** with `event_nav2_layer` (dynamic costmap layer)
 
-## Project Objectives
+## 2) Global repository content
 
-### Main Objective
+Main useful directories:
 
-Improve the overall **SLAM + Navigation** performance of the LIMO robot in degraded conditions (low light, HDR, fast motions, dynamic obstacles) by exploiting the capabilities of an event-based camera.
+- `project_ws/src/datasync_3_0`: C++ motion compensation node
+- `project_ws/src/event_segmentation`: Python segmentation node
+- `project_ws/src/event_clustering_2_0`: Python clustering node
+- `project_ws/src/event_nav2_layer`: Nav2 costmap plugin (C++)
+- `project_ws/src/bringup`: launch for the perception chain
+- `project_ws/src/dv-ros2`: essential dependencies for the event camera driver
+- `Documentation/`: technical notes and
+- `package_motion_compensation_ROS1/Jhonny-Li-Motion-compensation-f6ae84b`: ROS1 reference implementation (migration baseline toward ROS2 `datasync_3_0`)
+- `thirdparty/dv-processing-1.7.9`: local copy of the `dv-processing` library
 
-### Specific Objectives
+## 3) Dependencies and installation
 
-* Quantitatively evaluate the existing navigation pipelines:
+### 3.1 System prerequisites
 
-  * **Cartographer LiDAR + Nav2**
-  * **RTAB-Map RGB-D + Nav2**
-* Implement an **event-based dynamic obstacle detection method**
-* Integrate this detection into the **Nav2 costmap**
-* Compare navigation performance **with and without the DAVIS camera** under identical scenarios
+- Ubuntu 22.04
+- ROS 2 Humble
+- `colcon`, `rosdep`, `vcstool`
 
----
+Base installation:
 
-## Robotic Platform
+```bash
+sudo apt update
+sudo apt install -y \
+  python3-colcon-common-extensions \
+  python3-rosdep \
+  python3-vcstool \
+  python3-pip \
+  build-essential cmake git
+```
 
-* **Robot**: AgileX **LIMO ROS 2**
-* **Operating System**: Ubuntu 22.04
-* **Middleware**: ROS 2 Humble
-* **Onboard Computing**: Intel NUC i7
+`rosdep` initialization (once per machine):
 
-### Sensors Used
+```bash
+sudo rosdep init
+rosdep update
+```
 
-* **2D LiDAR**: EAI T-mini Pro
-* **RGB-D Camera**: Orbbec Dabai
-* **IMU**: LIMO onboard IMU
-* **Event-based Camera**: **DAVIS-346** (events + APS + IMU)
+### 3.2 Workspace ROS dependencies
 
----
+From `project_ws`, install dependencies declared in `package.xml` files:
 
-## Scientific Approach
+```bash
+cd /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws
+rosdep install --from-paths src --ignore-src -r -y
+```
 
-### Selected Event-Based Method
+### 3.3 `dv-ros2` dependencies (essential)
 
-The main dynamic perception module is based on the following paper:
+The event format consumed by `datasync_3_0` is `dv_ros2_msgs::msg::EventArray` (provided by `dv-ros2`).
 
-> **Zhao, Li, Lyu – “Event-based Real-time Moving Object Detection Based on IMU Ego-motion Compensation”**,
-> *IEEE ICRA 2023*
+Useful resources:
 
-Key principles:
+- `dv-ros2` repository (Telios): https://github.com/Telios/dv-ros2
+- `dv-ros2` installation README: https://github.com/Telios/dv-ros2/blob/master/README.md
+- `dv-processing` documentation: https://docs.inivation.com/software/dv-processing/index.html
+- iniVation PPA (system packages): https://launchpad.net/~inivation-ppa/+archive/ubuntu/inivation
 
-1. **Ego-motion compensation** using IMU measurements
-   → nonlinear warping of event streams
-2. **Dynamic segmentation** based on *time images* and *count images*
-3. **Clustering of moving objects** (DBSCAN + motion information)
-4. **Projection of dynamic objects** into a Nav2 costmap layer
+Depending on your setup, you may need to install `dv-processing`/`libcaer` via the iniVation PPA first, then run again:
 
----
+```bash
+rosdep install --from-paths src --ignore-src -r -y
+```
 
-## Current Repository Organization
+## 4) Build
 
+```bash
+cd /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --packages-up-to bringup event_nav2_layer
+source install/setup.bash
+```
 
+## 5) Run the pipeline
 
----
+### 5.1 Full perception pipeline (compensation + segmentation + clustering)
 
-## 📚 Main References
+```bash
+cd /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws
+source install/setup.bash
+ros2 launch bringup bringup.launch.py
+```
 
-* Zhao et al., *Event-based Real-time Moving Object Detection Based on IMU Ego-motion Compensation*, ICRA 2023
-* RTAB-Map ROS
-* Cartographer ROS
-* Nav2 Documentation
-* AgileX LIMO ROS 2 User Manual
+### 5.2 Dynamic Nav2 layer (`event_nav2_layer`)
 
----
+```bash
+cd /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws
+source install/setup.bash
+ros2 launch event_nav2_layer event_nav2_layer.launch.py
+```
 
-## 👤 Authors
+By default, the layer reads the `PointCloud2` topic:
 
-**Nochi Magouo**
-MSc (Master 2) in Robotics – Artificial Perception
-Université Clermont Auvergne / Institut Pascal
+- `/dynamic_obstacles`
 
-**Nadjib Mekelleche**
-MSc (Master 2) in Robotics – Artificial Perception
-Université Clermont Auvergne / Institut Pascal
+(this topic is published by `event_clustering_2_0` in the current version).
 
+### 5.3 Example with rosbag
 
-## License
+In one terminal:
 
-This project is licensed under the MIT License – see the [LICENSE.md](LICENSE.md) file for details.
+```bash
+ros2 launch bringup bringup.launch.py
+```
+
+In another terminal:
+
+```bash
+source /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/install/setup.bash
+ros2 bag play <bag_path> --clock
+```
+
+## 6) Authors
+
+- Nochi Magouo
+- Nadjib Mekelleche
