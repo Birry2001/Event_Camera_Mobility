@@ -1,9 +1,0 @@
-motion_compensation_node:
-  ros__parameters:
-    weight_param: 346
-    height_param: 260
-    focus: 6550.0
-    pixel_size: 18.5
-    events_topic: /dvs/events
-    imu_topic: /dvs/imu
-    count_image_topic: /count_image

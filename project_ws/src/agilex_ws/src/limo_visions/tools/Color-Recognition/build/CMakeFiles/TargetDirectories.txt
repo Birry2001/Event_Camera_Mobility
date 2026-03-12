@@ -1,6 +1,0 @@
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/open_cap.dir
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/01test.dir
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/recognition.dir
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/get_hsv.dir
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/edit_cache.dir
-/home/agilex/catkin_ws/src/Color-Recognition/build/CMakeFiles/rebuild_cache.dir

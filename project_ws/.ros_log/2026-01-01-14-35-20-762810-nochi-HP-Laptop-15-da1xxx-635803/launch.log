@@ -1,9 +1,0 @@
-1767274520.7637041 [INFO] [launch]: All log files can be found below /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/.ros_log/2026-01-01-14-35-20-762810-nochi-HP-Laptop-15-da1xxx-635803
-1767274520.7638361 [INFO] [launch]: Default logging verbosity is set to INFO
-1767274520.8358610 [INFO] [ros2-1]: process started with pid [635804]
-1767274520.8361304 [INFO] [event_tf_static_node-2]: process started with pid [635806]
-1767274520.8363035 [INFO] [Motion_Compensation-3]: process started with pid [635808]
-1767274520.8364401 [INFO] [event_segmentation_node-4]: process started with pid [635810]
-1767274520.8365738 [INFO] [event_clustering_node-5]: process started with pid [635812]
-1767274601.9826279 [INFO] [ros2-1]: process has finished cleanly [pid 635804]
-1767274637.1757236 [ERROR] [event_segmentation_node-4]: process has died [pid 635810, exit code 1, cmd '/home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/install/event_segmentation/lib/event_segmentation/event_segmentation_node --ros-args -r __node:=event_segmentation --params-file /home/nochi/NOCHI/M2_PAR/Projet_de_synthese/project_ws/install/event_segmentation/share/event_segmentation/config/segmentation.yaml --params-file /tmp/launch_params_7j1em7n1'].

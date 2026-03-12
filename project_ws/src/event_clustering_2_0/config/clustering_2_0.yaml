@@ -4,6 +4,11 @@
     input_mask_topic: /event_mask
     events_comp_topic: /events_compensated
     clusters_color_topic: /event_clusters_color
+    objects_cloud_topic: /dynamic_obstacles
+    objects_cloud_enable: true
+    objects_cloud_frame_id: base_link
+    objects_cloud_scale_xy_m: 0.01
+    objects_cloud_z_m: 0.0
 
     # Synchronization and logs
     sync_queue_size: 3

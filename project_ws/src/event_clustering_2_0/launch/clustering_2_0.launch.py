@@ -23,6 +23,11 @@ def generate_launch_description():
         DeclareLaunchArgument("input_mask_topic", default_value="/event_mask"),
         DeclareLaunchArgument("events_comp_topic", default_value="/events_compensated"),
         DeclareLaunchArgument("clusters_color_topic", default_value="/event_clusters_color"),
+        DeclareLaunchArgument("objects_cloud_topic", default_value="/dynamic_obstacles"),
+        DeclareLaunchArgument("objects_cloud_enable", default_value="true"),
+        DeclareLaunchArgument("objects_cloud_frame_id", default_value="base_link"),
+        DeclareLaunchArgument("objects_cloud_scale_xy_m", default_value="0.01"),
+        DeclareLaunchArgument("objects_cloud_z_m", default_value="0.0"),
         DeclareLaunchArgument("sync_queue_size", default_value="3"),
         DeclareLaunchArgument("sync_slop", default_value="0.05"),
         DeclareLaunchArgument("log_stats", default_value="false"),
@@ -52,6 +57,17 @@ def generate_launch_description():
         "input_mask_topic": LaunchConfiguration("input_mask_topic"),
         "events_comp_topic": LaunchConfiguration("events_comp_topic"),
         "clusters_color_topic": LaunchConfiguration("clusters_color_topic"),
+        "objects_cloud_topic": LaunchConfiguration("objects_cloud_topic"),
+        "objects_cloud_enable": ParameterValue(
+            LaunchConfiguration("objects_cloud_enable"), value_type=bool
+        ),
+        "objects_cloud_frame_id": LaunchConfiguration("objects_cloud_frame_id"),
+        "objects_cloud_scale_xy_m": ParameterValue(
+            LaunchConfiguration("objects_cloud_scale_xy_m"), value_type=float
+        ),
+        "objects_cloud_z_m": ParameterValue(
+            LaunchConfiguration("objects_cloud_z_m"), value_type=float
+        ),
         "sync_queue_size": ParameterValue(LaunchConfiguration("sync_queue_size"), value_type=int),
         "sync_slop": ParameterValue(LaunchConfiguration("sync_slop"), value_type=float),
         "log_stats": ParameterValue(LaunchConfiguration("log_stats"), value_type=bool),

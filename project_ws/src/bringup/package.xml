@@ -12,9 +12,8 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>datasync_3_0</exec_depend>
-  <exec_depend>dv_ros2_capture</exec_depend>
   <exec_depend>event_segmentation</exec_depend>
-  <exec_depend>event_clustering</exec_depend>
+  <exec_depend>event_clustering_2_0</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

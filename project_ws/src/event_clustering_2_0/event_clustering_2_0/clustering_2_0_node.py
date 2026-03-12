@@ -5,6 +5,12 @@ Event clustering 2.0 (clustering only), paper-style rendering.
 Paper:
 - Fig.1(d): objects only, red points on white background.
 - Clustering metric Eq.(12): wp*||p_i-p_j|| + wv*||v_i-v_j||.
+
+Pipeline role:
+- consumes segmentation mask + compensated events
+- estimates local event motion
+- clusters foreground events in joint position/time/velocity space
+- publishes both visualization masks and a PointCloud2 for Nav2
 """
 
 from collections import deque
@@ -17,7 +23,9 @@ from dv_ros2_msgs.msg import EventArray
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs_py import point_cloud2
+from std_msgs.msg import Header
 
 try:
     from scipy.spatial import cKDTree  # type: ignore
@@ -28,6 +36,7 @@ except Exception:
 
 
 def to_sec(stamp) -> float:
+    # ROS Time -> seconds (float) for local temporal computations.
     return float(stamp.sec) + float(stamp.nanosec) * 1e-9
 
 
@@ -49,6 +58,11 @@ class EventClustering20Node(Node):
         # Outputs (paper style)
         self.declare_parameter("objects_vis_topic", "/event_objects_vis")    # bgr8 like Fig.1(d)
         self.declare_parameter("objects_mask_topic", "/event_objects_mask")  # mono8 0/255
+        self.declare_parameter("objects_cloud_topic", "/dynamic_obstacles")  # PointCloud2 for nav2 layer
+        self.declare_parameter("objects_cloud_enable", True)
+        self.declare_parameter("objects_cloud_frame_id", "base_link")
+        self.declare_parameter("objects_cloud_scale_xy_m", 0.01)
+        self.declare_parameter("objects_cloud_z_m", 0.0)
 
         # Sync/log
         self.declare_parameter("sync_queue_size", 10)
@@ -101,12 +115,18 @@ class EventClustering20Node(Node):
         self.declare_parameter("bg_white", True)
         self.declare_parameter("object_bgr", [0, 0, 255])  # red
         self.declare_parameter("background_bgr", [255, 255, 255])  # white
+        self.declare_parameter("vis_point_radius_px", 1)  # visualization only
 
         # Read
         self._input_mask_topic = str(self.get_parameter("input_mask_topic").value)
         self._events_comp_topic = str(self.get_parameter("events_comp_topic").value)
         self._objects_vis_topic = str(self.get_parameter("objects_vis_topic").value)
         self._objects_mask_topic = str(self.get_parameter("objects_mask_topic").value)
+        self._objects_cloud_topic = str(self.get_parameter("objects_cloud_topic").value)
+        self._objects_cloud_enable = bool(self.get_parameter("objects_cloud_enable").value)
+        self._objects_cloud_frame_id = str(self.get_parameter("objects_cloud_frame_id").value)
+        self._objects_cloud_scale_xy_m = max(1e-6, float(self.get_parameter("objects_cloud_scale_xy_m").value))
+        self._objects_cloud_z_m = float(self.get_parameter("objects_cloud_z_m").value)
 
         self._sync_queue_size = max(1, int(self.get_parameter("sync_queue_size").value))
         self._sync_slop = max(0.0, float(self.get_parameter("sync_slop").value))
@@ -155,6 +175,11 @@ class EventClustering20Node(Node):
         self._bg_white = bool(self.get_parameter("bg_white").value)
         self._object_bgr = tuple(int(x) for x in self.get_parameter("object_bgr").value)
         self._background_bgr = tuple(int(x) for x in self.get_parameter("background_bgr").value)
+        self._vis_point_radius = max(0, int(self.get_parameter("vis_point_radius_px").value))
+        self._vis_point_kernel = None
+        if self._vis_point_radius > 0:
+            k = 2 * self._vis_point_radius + 1
+            self._vis_point_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
 
         if self._st_filter_use_kdtree and self._st_filter_enable and not _HAVE_SCIPY:
             self.get_logger().warn(
@@ -170,6 +195,10 @@ class EventClustering20Node(Node):
         self._bridge = CvBridge()
         self._objects_vis_pub = self.create_publisher(Image, self._objects_vis_topic, 10)
         self._objects_mask_pub = self.create_publisher(Image, self._objects_mask_topic, 10)
+        self._objects_cloud_pub = (
+            self.create_publisher(PointCloud2, self._objects_cloud_topic, 10)
+            if self._objects_cloud_enable else None
+        )
 
         mask_sub = Subscriber(self, Image, self._input_mask_topic, qos_profile=qos_profile_sensor_data)
         events_sub = Subscriber(self, EventArray, self._events_comp_topic, qos_profile=qos_profile_sensor_data)
@@ -184,7 +213,8 @@ class EventClustering20Node(Node):
         self.get_logger().info(
             "event_clustering_2_0 ready. "
             f"in_mask={self._input_mask_topic} events={self._events_comp_topic} "
-            f"out_vis={self._objects_vis_topic} out_mask={self._objects_mask_topic}"
+            f"out_vis={self._objects_vis_topic} out_mask={self._objects_mask_topic} "
+            f"out_cloud={self._objects_cloud_topic if self._objects_cloud_enable else 'disabled'}"
         )
 
     def _publish_bgr(self, img_bgr: np.ndarray, header, pub) -> None:
@@ -196,6 +226,31 @@ class EventClustering20Node(Node):
         msg = self._bridge.cv2_to_imgmsg(img_mono, encoding="mono8")
         msg.header = header
         pub.publish(msg)
+
+    def _publish_cloud(self, points_xy: np.ndarray, header, width: int, height: int) -> None:
+        if self._objects_cloud_pub is None:
+            return
+
+        # Convert image coordinates to a pseudo-metric local frame.
+        # This provides Nav2 with 3D points in a consistent frame_id.
+        cx = (float(width) - 1.0) * 0.5
+        cy = (float(height) - 1.0) * 0.5
+        s = self._objects_cloud_scale_xy_m
+        z = self._objects_cloud_z_m
+
+        # Pixel space -> pseudo metric base frame:
+        # x forward from image vertical axis, y lateral from horizontal axis.
+        cloud_points = [
+            ((cy - float(y_px)) * s, (cx - float(x_px)) * s, z)
+            for x_px, y_px in points_xy
+        ]
+
+        cloud_header = Header()
+        cloud_header.stamp = header.stamp
+        cloud_header.frame_id = self._objects_cloud_frame_id if self._objects_cloud_frame_id else header.frame_id
+
+        cloud_msg = point_cloud2.create_cloud_xyz32(cloud_header, cloud_points)
+        self._objects_cloud_pub.publish(cloud_msg)
 
     # ------------------- NEW: spatio-temporal filtering -------------------
 
@@ -278,6 +333,7 @@ class EventClustering20Node(Node):
         if points_xy.shape[0] == 0:
             return points_xy, np.empty((0,), dtype=np.int32), 0, 0, 0, 0
 
+        # 1) keep realtime bounded, 2) remove isolated noise, 3) cluster.
         points_xy, points_t = self._downsample_events(points_xy, points_t)
 
         st_before = int(points_xy.shape[0])
@@ -309,6 +365,7 @@ class EventClustering20Node(Node):
         points_xy, points_t = self._extract_events(events_msg, mask, self._use_input_mask)
         masked_selected = int(points_xy.shape[0])
 
+        # If mask selection is too sparse, fallback to all compensated events.
         if self._use_input_mask and self._mask_fallback_enable and masked_selected < self._mask_fallback_min_selected:
             points_xy, points_t = self._extract_events(events_msg, mask, False)
             fallback_used = True
@@ -319,6 +376,7 @@ class EventClustering20Node(Node):
             self._use_input_mask and self._mask_fallback_enable and self._mask_fallback_on_empty_clusters
             and not fallback_used and masked_selected >= self._mask_fallback_min_selected and cluster_count == 0
         ):
+            # Second-chance fallback: retry full-event clustering only if masked path produced no cluster.
             points_xy_all, points_t_all = self._extract_events(events_msg, mask, False)
             points_xy_fb, labels_fb, cluster_count_fb, kept_events_fb, st_before_fb, st_after_fb = self._cluster_selected_events(points_xy_all, points_t_all)
             if cluster_count_fb > 0:
@@ -329,6 +387,7 @@ class EventClustering20Node(Node):
         # --- Paper-style rendering (Fig.1(d)): white bg, red objects only ---
         bg = np.full((h, w, 3), self._background_bgr, dtype=np.uint8) if self._bg_white else np.zeros((h, w, 3), dtype=np.uint8)
         obj_mask = np.zeros((h, w), dtype=np.uint8)
+        cluster_vis_seed = np.zeros((h, w), dtype=np.uint8) if self._vis_point_kernel is not None else None
 
         if kept_events > 0:
             valid = labels >= 0
@@ -348,11 +407,24 @@ class EventClustering20Node(Node):
                 else:
                     color = color_from_id(int(cid)) if self._draw_each_cluster_color else self._object_bgr
 
-                bg[xy[:, 1], xy[:, 0]] = color
                 obj_mask[xy[:, 1], xy[:, 0]] = 255
+                if self._vis_point_kernel is None:
+                    bg[xy[:, 1], xy[:, 0]] = color
+                else:
+                    # Visualization only: enlarge sparse event pixels to improve readability.
+                    cluster_vis_seed.fill(0)
+                    cluster_vis_seed[xy[:, 1], xy[:, 0]] = 255
+                    cluster_vis = cv2.dilate(cluster_vis_seed, self._vis_point_kernel, iterations=1)
+                    bg[cluster_vis > 0] = color
 
         self._publish_bgr(bg, mask_msg.header, self._objects_vis_pub)
         self._publish_mono(obj_mask, mask_msg.header, self._objects_mask_pub)
+        # Export clustered points for event_nav2_layer.
+        if kept_events > 0:
+            cloud_points_xy = points_xy[labels >= 0]
+        else:
+            cloud_points_xy = np.empty((0, 2), dtype=np.float32)
+        self._publish_cloud(cloud_points_xy, mask_msg.header, w, h)
 
         if self._log_stats:
             in_px = int(np.count_nonzero(mask >= self._input_mask_min_value))

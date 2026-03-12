@@ -17,9 +17,8 @@ def _include_launch(package_name: str, launch_file: str) -> IncludeLaunchDescrip
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
-            _include_launch("dv_ros2_capture", "capture.launch.py"),
             _include_launch("datasync_3_0", "motion_compensation.launch.py"),
             _include_launch("event_segmentation", "segmentation.launch.py"),
-            _include_launch("event_clustering", "clustering.launch.py"),
+            _include_launch("event_clustering_2_0", "clustering_2_0.launch.py"),
         ]
     )

@@ -985,7 +985,7 @@ void EventVisualizer::event_cb(const dv_ros2_msgs::msg::EventArray::SharedPtr ms
         return;
     }
 
-    // Tant que l'alignement n'est pas fait
+    // After startup alignment, each event batch is processed with a snapshot of IMU samples.
     if (first_event_received_ == false) {
 
         // Snapshot IMU securise
@@ -1013,7 +1013,7 @@ void EventVisualizer::event_cb(const dv_ros2_msgs::msg::EventArray::SharedPtr ms
         // Traitement
         data_process();
     } else {
-        // Premiere reception -> alignement initial
+        // First received batch: only switch state, processing starts on the next callback.
         first_event_received_ = false;
         imu_buffer_.clear();
         RCLCPP_INFO(get_logger(),

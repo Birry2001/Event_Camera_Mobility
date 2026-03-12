@@ -62,7 +62,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'lambda_b',
-            default_value='0.2',
+            default_value='0.1',
             description='Lambda dynamic threshold coefficient b'
         ),
         DeclareLaunchArgument(

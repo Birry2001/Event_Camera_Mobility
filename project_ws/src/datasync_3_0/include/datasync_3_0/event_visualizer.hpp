@@ -69,11 +69,13 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr time_image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr time_image_vis_pub_;
 
+    // Buffers used to process one synchronized "batch" (events + IMU window).
     std::vector<dv_ros2_msgs::msg::Event> event_buffer_;
     std::vector<sensor_msgs::msg::Imu> imu_buffer_;
     std::vector<sensor_msgs::msg::Imu> imu_buffer_snapshot_;
 
     std_msgs::msg::Header last_event_header_;
+    // Startup gate: first callback prepares temporal alignment, then normal processing starts.
     bool first_event_received_ = true;
     bool require_imu_ahead_   = true;
     int64_t imu_window_ns_    = 3000000;
@@ -90,6 +92,7 @@ private:
 
     rclcpp::Publisher<dv_ros2_msgs::msg::EventArray>::SharedPtr events_comp_pub_;
 
+    // Optional pre-compensation denoising chain (refractory + BA neighborhood + hot-pixel).
     bool prefilter_enable_{true};
     bool prefilter_refractory_enable_{true};
     int64_t prefilter_refractory_us_{600};
@@ -103,6 +106,7 @@ private:
     int prefilter_hot_pixel_max_events_per_batch_{9};
     bool prefilter_log_stats_{false};
 
+    // Diagnostics-only metrics published for experiments/reporting.
     bool metrics_enable_{true};
     std::string noise_metrics_topic_{"/event_noise_metrics"};
     bool metrics_log_stats_{false};
